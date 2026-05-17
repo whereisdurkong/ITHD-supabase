@@ -1,0 +1,1 @@
+import{m as t,r as a}from"./main-DYOfMHsM.js";function c(){const e=t();a.useEffect(()=>{JSON.parse(localStorage.getItem("user")).emp_tier==="helpdesk"?e("/create-ticket-hd"):e("/create-ticket-user")},[])}export{c as default};
