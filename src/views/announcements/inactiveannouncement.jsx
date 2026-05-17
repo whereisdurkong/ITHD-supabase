@@ -191,7 +191,7 @@ export default function InActiveAnnouncement() {
                                 <div className="d-flex align-items-center justify-content-between mb-2">
                                     <div className="d-flex align-items-center">
                                         <img
-                                            src="src/assets/images/user/avatar-2.jpg"
+                                            src="/images/user/avatar-2.jpg"
                                             alt="Profile"
                                             style={{
                                                 width: '40px',
