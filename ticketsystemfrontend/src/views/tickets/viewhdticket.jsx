@@ -1,0 +1,2564 @@
+import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from 'react-icons/fa';
+import { useEffect, useState } from "react";
+import { Container, Row, Col, Form, Card, Button, Alert, FormSelect, Modal, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import axios from 'axios';
+import config from 'config';
+import Select from 'react-select';
+import FeatherIcon from 'feather-icons-react';
+import Spinner from 'react-bootstrap/Spinner';
+import { useNavigate } from "react-router-dom";
+import ViewTicketLogs from './viewticketlogs';
+import ViewTicketTAT from './viewtickettat';
+
+import CreatableSelect from 'react-select/creatable';
+import AnimatedContent from 'layouts/ReactBits/AnimatedContent';
+import { supabase } from '../../createClient';
+
+
+export default function ViewHDTicket() {
+    const [formData, setFormData] = useState({});
+    const [originalData, setOriginalData] = useState({});
+    const [hasChanges, setHasChanges] = useState(false);
+    const [ticketForData, setTicketForData] = useState({});
+    const [hdUser, setHDUser] = useState({});
+    const [allUser, setAllUser] = useState([]);
+    const [allHDUser, setAllHDUser] = useState([]);
+
+    const [tier, setTier] = useState('');
+    const [location, setLocation] = useState('');
+
+    const [isEditable, setIsEditable] = useState(false);
+    const [showAcceptButton, setShowAcceptButton] = useState(false);
+
+    const [hdnotesState, setHDNotesState] = useState(false)
+    const [noteAlert, setNoteAlert] = useState(false)
+    const template = 'Steps taken:\nResolution:'
+    const [notes, setNotes] = useState(template)
+    const [allnotes, setAllNotes] = useState([]);
+    const [notesofhduser, setnoteofhduser] = useState('')
+    const [originalNotes, setOriginalNotes] = useState("");
+
+    const [error, setError] = useState('');
+    const [successful, setSuccessful] = useState('');
+
+    const [allfeedback, setAllFeedback] = useState([])
+    const [feedbackuser, setFeedBackUser] = useState('')
+
+    const [showCloseResolutionModal, setShowCloseResolutionModal] = useState(false);
+    const [resolution, setResolution] = useState('');
+
+    const [turnaroundtime, setTurnAroundTime] = useState('');
+
+    const [collaboratorState, setCollaboratorState] = useState(false);
+    const ticket_id = new URLSearchParams(window.location.search).get('id');
+
+    const [showUserCard, setShowUserCard] = useState(false);
+
+    const [notifyReview, setNotifyReview] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const [assignToState, setAssignedToState] = useState(false);
+    const [archiveState, setArchiveState] = useState(false)
+    const [unarchiveState, setUnArchiveState] = useState(false)
+    const [archiveTextState, setArchiveTextState] = useState(false)
+
+    // Modal states
+    const [showModal, setShowModal] = useState(false);
+    const [modalTitle, setModalTitle] = useState("");
+    const [modalContent, setModalContent] = useState(null);
+
+    const [showModalTAT, setShowModalTAT] = useState(false);
+    const [modalTitleTAT, setModalTitleTAT] = useState("");
+    const [modalContentTAT, setModalContentTAT] = useState(null);
+
+    const [assets, setAssets] = useState([]);
+    const [archBTN1, setArchBTN1] = useState(false);
+    const [archBTN2, setArchBTN2] = useState(false);
+
+    const empInfo = JSON.parse(localStorage.getItem('user'));
+    const [lockModal, setLockModal] = useState(false)
+    const [lockError, setLockError] = useState('')
+
+    const [attachmentButtonState, setAttachmentButtonState] = useState(false)
+
+    const [noteAttachments, setNoteAttachments] = useState([]);
+    const [noteAttachmentPaths, setNoteAttachmentPaths] = useState('');
+
+    // State for custom subcategories
+    const [customSubCategories, setCustomSubCategories] = useState({});
+    const [showAddSubCategoryModal, setShowAddSubCategoryModal] = useState(false);
+    const [newSubCategoryName, setNewSubCategoryName] = useState('');
+    const [isAddingSubCategory, setIsAddingSubCategory] = useState(false);
+
+    //All Subcategory
+    const subCategoryOptions = {
+
+        hardware: [
+            "Desktop",
+            "Laptop",
+            "Monitor",
+            "Printer",
+            "Scanner",
+            "Printer/Scanner Combo",
+            "Peripherals (Keyboard, Mouse, Webcam, External Drive)",
+            "Docking Station",
+            "Projector",
+            "Fax Machine",
+            "Telephone",
+            "Server Hardware",
+            "UPS (Uninterruptible Power Supply)",
+            "Cabling & Ports",
+            "New Laptop Request",
+            "New Monitor Request",
+            "Printer Installation",
+            "Additional Peripherals",
+            "Hardware Upgrade",
+            "Warranty Inquiry", "Specs Inquiry",
+            "Others",
+        ],
+        network: [
+            "Internet Connectivity",
+            "Wi-Fi",
+            "LAN (Local Area Network)",
+            "WAN (Wide Area Network)",
+            "Server Access",
+            "Network Printer/Scanner",
+            "VPN Connection",
+            "Firewall",
+            "Router/Switch Configuration",
+            "MPLS",
+            "ISP",
+            "Network Security (Intrusion Detection/Prevention)",
+            "Bandwidth Issues",
+            "New VPN Access",
+            "Firewall Rule Request",
+            "New Router/Switch Setup",
+            "Bandwidth Upgrade",
+            "ISP Request",
+            "Network Policy Inquiry",
+            "Coverage Inquiry",
+            "Others"
+        ],
+        application: [
+            "Microsoft Applications (Excel, Word, Outlook, PowerPoint, Teams)",
+            "Email (Setup, Creation, Error, Backup)",
+            "Active Directory (User Creation, Login, Password)",
+            "Zoom / Video Conferencing Tools",
+            "FoxPro (Accounting System)",
+            "GEMCOM",
+            "SURPAC",
+            "FTP (Access Creation, Change Password)",
+            "PDF (Conversion, Reduce Size, Editing)",
+            "Antivirus / Security Software",
+            "Operating System (Windows, macOS, Linux)",
+            "Cloud Services (OneDrive, Google Drive, Dropbox)",
+            "New Software Installation",
+            "License Renewal",
+            "User Account Creation",
+            "Database Access Request",
+            "Cloud Storage Request",
+            "Software Policy Inquiry", "Version Inquiry",
+            "Doc Library Access",
+            "Others",
+        ],
+        system: [
+            "Oracle (PROD/BIPUB)",
+            "System Updates & Patches",
+            "Backup & Restore Tools",
+            "CCTV Incident Report System",
+            "Safety Accident Report System",
+            "Compliance Registry System",
+            "Information Management System (Comrel)",
+            "Lepanto IT Help Desk System",
+            "New Account",
+            "Delete Account",
+            "Edit Account",
+            "Request Access",
+            "System Policy Inquiry", "Assistance",
+            "Bizbox",
+            "Others"
+        ]
+    };
+
+    // Load custom subcategories from backend/localStorage
+    useEffect(() => {
+        const loadCustomSubCategories = async () => {
+            try {
+                // const response = await axios.get(`${config.baseApi}/ticket/get-custom-subcategories`);
+                const response = await supabase.from('option_master').select('*');
+                if (response.data && response.data.success) {
+                    setCustomSubCategories(response.data.categories);
+                } else {
+                    // Fallback to localStorage
+                    const saved = localStorage.getItem('customSubCategories');
+                    if (saved) {
+                        setCustomSubCategories(JSON.parse(saved));
+                    }
+                }
+            } catch (error) {
+                // Fallback to localStorage if backend fails
+                const saved = localStorage.getItem('customSubCategories');
+                if (saved) {
+                    setCustomSubCategories(JSON.parse(saved));
+                }
+            }
+        };
+
+        loadCustomSubCategories();
+    }, []);
+
+    // Save custom subcategory to backend/localStorage
+    const saveCustomSubCategory = async (category, subCategory) => {
+        const updatedCategories = {
+            ...customSubCategories,
+            [category]: [...(customSubCategories[category] || []), subCategory]
+        };
+
+        setCustomSubCategories(updatedCategories);
+
+        // Save to localStorage as fallback
+        localStorage.setItem('customSubCategories', JSON.stringify(updatedCategories));
+
+        // Try to save to backend
+        try {
+            // await axios.post(`${config.baseApi}/ticket/add-custom-subcategory`, {
+            //     category: category,
+            //     subcategory: subCategory
+            // });
+
+            await supabase.from('option_master').insert({
+                category: category,
+                sub_category: subCategory,
+            });
+        } catch (error) {
+            console.error('Failed to save custom subcategory to backend:', error);
+        }
+    };
+
+    // Get current subcategory options (default + custom)
+    const getCurrentSubCategoryOptions = () => {
+        if (!formData.ticket_category) return [];
+
+        const defaultOptions = subCategoryOptions[formData.ticket_category] || [];
+        const customOptions = customSubCategories[formData.ticket_category] || [];
+
+        return [...defaultOptions, ...customOptions];
+    };
+
+    // Handle adding new subcategory
+    const handleAddSubCategory = async () => {
+        if (!newSubCategoryName.trim()) {
+            setError('Please enter a subcategory name');
+            return;
+        }
+
+        if (!formData.ticket_category) {
+            setError('Please select a category first');
+            return;
+        }
+
+        setIsAddingSubCategory(true);
+
+        try {
+            await saveCustomSubCategory(formData.ticket_category, newSubCategoryName.trim());
+
+            // Automatically select the newly added subcategory
+            setFormData(prev => ({
+                ...prev,
+                ticket_SubCategory: newSubCategoryName.trim()
+            }));
+
+            setShowAddSubCategoryModal(false);
+            setNewSubCategoryName('');
+            setSuccessful(`Subcategory "${newSubCategoryName}" added successfully!`);
+        } catch (error) {
+            setError('Failed to add subcategory. Please try again.');
+            console.error('Error adding subcategory:', error);
+        } finally {
+            setIsAddingSubCategory(false);
+        }
+    };
+
+    //Dropdown styles
+    const customSelectStyles = {
+        container: (provided) => ({
+            ...provided,
+            width: '100%',
+        }),
+        control: (provided, state) => ({
+            ...provided,
+            minHeight: '43px',
+            border: state.isFocused ? '2px solid #fdc10dff' : `2px solid ${provided.borderColor}`,
+            boxShadow: state.isFocused ? '1px rgba(253, 169, 13, 1)' : provided.boxShadow,
+            '&:hover': { borderColor: '#fdc10dff' },
+        }),
+        valueContainer: (provided) => ({
+            ...provided,
+            paddingTop: '0px',
+            paddingBottom: '0px',
+        }),
+        multiValue: (provided) => ({
+            ...provided,
+            backgroundColor: '#f1f1f1',
+            borderRadius: '4px',
+            padding: '1px 4px',
+        }),
+        multiValueLabel: (provided) => ({
+            ...provided,
+            fontSize: '0.85rem',
+            color: '#333',
+        }),
+        multiValueRemove: (provided) => ({
+            ...provided,
+            color: '#999',
+            ':hover': {
+                backgroundColor: '#ffcccc',
+                color: '#ff0000',
+            },
+        }),
+    };
+
+    // If ticket was open then you can assign a HD
+    useEffect(() => {
+        if (formData.ticket_status === 'open') {
+            setAssignedToState(true)
+        } else {
+            setAssignedToState(false)
+        }
+    }, [formData.ticket_status])
+
+    // Loading Timeout
+    // useEffect(() => {
+    //     if (loading) {
+    //         const timer = setTimeout(() => {
+    //             setLoading(false);
+    //         }, 2000);
+    //         return () => clearTimeout(timer)
+    //     }
+    // }, [loading])
+
+    //Alerts timeout
+    useEffect(() => {
+        if (error || successful) {
+            const timer = setTimeout(() => {
+                setError('');
+                setSuccessful('');
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [error, successful]);
+
+    //buttons validation
+    useEffect(() => {
+        const empInfo = JSON.parse(localStorage.getItem('user'));
+
+        if (empInfo.emp_tier === 'helpdesk') {
+            //and ticket is open
+            if (formData.ticket_status === 'open') {
+                if (isEditable === true) {
+                    setShowAcceptButton(false)
+                } else {
+                    setShowAcceptButton(true)
+                }
+            }
+            //and ticket is re-opend
+            if (formData.ticket_status === 're-opened') {
+                setIsEditable(true);
+            }
+            if (formData.ticket_status === 'in-progress' || formData.ticket_status === 'assigned') {
+                if (formData.assigned_to !== empInfo.user_name) {
+                    setIsEditable(false)
+                    setShowAcceptButton(true)
+                } else {
+                    setIsEditable(true)
+                }
+            }
+
+            if (formData.ticket_status === 'resolved') {
+                setIsEditable(false);
+                if (isEditable === true) {
+                    setShowAcceptButton(false)
+                } else {
+                    setShowAcceptButton(true)
+                }
+            }
+
+            if (formData.ticket_status === 'closed') {
+                setIsEditable(false);
+                setShowAcceptButton(false)
+            }
+        }
+
+
+    }, [formData.ticket_status])
+
+    //Note checker availability
+    useEffect(() => {
+        const empInfo = JSON.parse(localStorage.getItem('user'));
+        const fetchNotes = async () => {
+
+            //Open HD Add Note Function
+            if (formData.ticket_status === 'in-progress' && formData.assigned_to === empInfo.user_name) {
+                setHDNotesState(true)
+            }
+
+            try {
+                //Get all notes
+                // const response = await axios.get(`${config.baseApi}/ticket/get-all-notes/${ticket_id}`);
+
+                const response = await supabase.from('notes_master')
+                    .select('*')
+                    .eq('ticket_id', ticket_id)
+                    .order('created_at', { ascending: true })
+                    .order('created_by', { ascending: true })
+                    .order('note', { ascending: true });
+                setAllNotes(response.data);
+
+                //Get all notes by their username
+                const usernames = response.data.map(note => note.created_by)
+
+                // const responses = await axios.get(`${config.baseApi}/authentication/get-all-notes-usernames`, {
+                //     params: { user_name: JSON.stringify(usernames) }
+                // });
+
+                const responses = await supabase.from('users_master').select('*').eq('user_name', JSON.stringify(usernames))
+
+                const userMap = {}
+                responses.data.forEach(user => {
+                    userMap[user.user_name] = `${user.emp_FirstName} ` + ' ' + `${user.emp_LastName}`;
+                });
+                setnoteofhduser(userMap)
+
+                //------------------------------------------------------------------------------------------------------------------------------
+                //get all feedback
+                // const allfeedback = await axios.get(`${config.baseApi}/ticket/get-all-feedback/${ticket_id}`);
+
+                const allfeedback = await supabase.from('review_master').select('*').eq('ticket_id', ticket_id)
+                    .order('created_at', { ascending: true })
+                    .order('user_id', { ascending: true })
+                    .order('review', { ascending: true });
+                setAllFeedback(allfeedback.data);
+
+                //User data base on their username
+                const feedbackusername = allfeedback.data.map(user => user.created_by);
+
+                // const feedbackRes = await axios.get(`${config.baseApi}/authentication/get-all-review-usernames`, {
+                //     params: { user_name: JSON.stringify(feedbackusername) }
+                // });
+
+                const feedbackRes = await supabase.from('users_master').select('*').eq('user_name', JSON.stringify(feedbackusername))
+
+                //settin up full nmae by their user_id
+                const alluserMap = {}
+                feedbackRes.data.forEach(user => {
+                    alluserMap[user.user_name] = `${user.emp_FirstName}` + ' ' + `${user.emp_LastName}`;
+                });
+                console.log(alluserMap)
+                setFeedBackUser(alluserMap)
+
+
+            } catch (err) {
+                console.log('UNABLE TO FETCH ALL NOTES: ', err)
+            }
+        }
+        fetchNotes();
+    }, [formData.ticket_status, ticket_id, formData.is_reviewed])
+
+    //Get user from ticket
+    useEffect(() => {
+
+        //For User
+        if (formData.ticket_for) {
+            const fetch = async () => {
+                try {
+                    // const response = await axios.get(`${config.baseApi}/authentication/get-by-username`, {
+                    //     params: { user_name: formData.ticket_for }
+                    // });
+
+                    const response = await supabase.from('users_master').select('*').eq('user_name', formData.ticket_for).single()
+                    setTicketForData(response.data);
+                } catch (err) {
+                    console.log(err);
+                }
+            };
+            fetch();
+        }
+        //For HD
+        if (formData.assigned_to) {
+            const fetchHDUser = async () => {
+                try {
+                    // const response = await axios.get(`${config.baseApi}/authentication/get-by-username`, {
+                    //     params: { user_name: formData.assigned_to }
+                    // });
+
+                    const response = await supabase.from('users_master').select('*').eq('user_name', formData.assigned_to).single();
+                    setHDUser(response.data);
+                } catch (err) {
+                    console.log(err);
+                }
+            };
+            fetchHDUser();
+        }
+        /////WILL BE REMOVED
+
+
+        if (ticketForData.emp_location === 'corp') {
+            setLocation('Corporate Makati');
+        } else if (ticketForData.emp_location === 'lmd') {
+            setLocation('Lepanto Mine Division');
+        }
+
+
+
+
+    }, [formData.ticket_for, formData.assigned_to, formData.ticket_status, ticketForData.emp_location]);
+
+    //Assigned to collaborators state
+    useEffect(() => {
+        if (formData.assigned_collaborators) {
+            setCollaboratorState(true);
+        } else {
+            setCollaboratorState(false)
+        }
+    }, [formData.assigned_collaborators])
+
+    //Get the ticket deatails
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // const fetchticket = await axios.get(`${config.baseApi}/ticket/ticket-by-id`, {
+                //     params: { id: ticket_id }
+                // });
+
+                const fetchticket = await supabase.from('ticket_master').select('*').eq('ticket_id', ticket_id)
+                const ticket = Array.isArray(fetchticket.data) ? fetchticket.data[0] : fetchticket.data;
+                setFormData(ticket);
+                setOriginalData(ticket);
+
+                if (ticket.ticket_status === 'resolved' && ticket.is_reviewed === false || ticket.is_reviewed === null) {
+                    setNotifyReview(true)
+                } else {
+                    setNotifyReview(false)
+                }
+
+
+            } catch (err) {
+                console.error('Error fetching data:', err);
+            }
+        };
+
+        fetchData();
+    }, [ticket_id]);
+
+    //Archive Checker
+    useEffect(() => {
+        if (formData.is_active === false) {
+            setArchiveTextState(true);
+            setIsEditable(false);
+            setNotifyReview(false);
+            setShowAcceptButton(false);
+            setHasChanges(false);
+            setArchBTN2(true)
+            setArchBTN1(false)
+        } else {
+            setArchiveTextState(false);
+            setArchBTN1(true)
+            setArchBTN2(false)
+        }
+
+    }, [formData])
+
+    //get all users hd/users
+    useEffect(() => {
+        const fetch = async () => {
+            try {
+                // !!!!!!!!!!!!!!!!!!!!!
+                // axios.get(`${config.baseApi}/authentication/get-all-users`)
+                await supabase.from('users_master').select('*')
+                    .then((res) => {
+                        const justUsers = res.data.filter(user => user.emp_tier === 'user');
+                        setAllUser(justUsers);
+
+                        const allHD = res.data.filter(hd => hd.emp_tier === 'helpdesk');
+                        setAllHDUser(allHD);
+                        console.log(res)
+                    })
+
+                    .catch((err) => {
+                        console.error("Error fetching users:", err);
+                    });
+            } catch (err) {
+                console.log('Unable to get all users: ', err)
+            }
+        }
+        fetch()
+
+    }, [])
+
+    //asset options
+    useEffect(() => {
+        //Setting users fullnmae
+        const empInfo = JSON.parse(localStorage.getItem('user'));
+        const fname = empInfo.user_name;
+        const lname = empInfo.user_name;
+
+        const first = fname.charAt(0).toUpperCase() + fname.slice(1).toLowerCase();
+        const last = lname.charAt(0).toUpperCase() + lname.slice(1).toLowerCase();
+        const fullname = first + ' ' + last;
+
+
+        const fetch = async () => {
+            try {
+                // const res = await axios.get(`${config.baseApi}/pms/get-all-pms`);
+                const res = await supabase.from('pms_master').select('*')
+                const data = res.data || [];
+                const active = data.filter(a => a.is_active === "1");
+
+                //all of the asset under assign_to 
+                const own = active.filter(e => e.assign_to === formData.ticket_for);
+                console.log('ASSIGNED ASSETS: ', own)
+                const allAssets = active.map(e => e.tag_id);
+
+                setAssets(active)
+                console.log(active)
+
+            } catch (err) {
+                console.log('Unable to get all assets: ', err)
+            }
+
+        }
+        fetch();
+    }, [formData])
+
+    //Dropdown asset format
+    const options = assets.map(asset => ({
+        value: asset.tag_id,
+        label: asset.tag_id,
+        category: asset.pms_category
+    }));
+
+
+    useEffect(() => {
+        try {
+            const fetchData = async () => {
+                // const res = await axios.get(`${config.baseApi}/tat/get-tat-by-id`, {
+                //     params: { ticket_id: ticket_id }
+                // })
+                const res = await supabase.from('tat_master').select('*').eq('ticket_id', ticket_id);
+                const resData = res.data || [];
+                // const tatsupport = resData.filter(a => a.ticket_type === 'support');
+
+                console.log(resData)
+            }
+            fetchData();
+
+        } catch (err) {
+            console.log('Unable to fetch assets: ', err)
+        }
+    }, [])
+
+
+
+
+    // handle text area change
+    const handleNoteChange = (e) => {
+        const { value } = e.target;
+        setNotes(value);
+
+        // check if note is different from original
+        const changed = value !== originalNotes;
+        setHasChanges(changed);
+    };
+
+    //Notify user function
+    const handleNotifyReview = async () => {
+        const empInfo = JSON.parse(localStorage.getItem('user'));
+        //tikcetfor
+        try {
+            setLoading(true);
+            setSuccessful('Notified the user')
+            // axios.post(`${config.baseApi}/ticket/send-notification-review`, {
+            //     ticket_for_id: ticketForData.user_id,
+            //     ticket_id: ticket_id,
+            //     hd_user_id: empInfo.user_id,
+            // });
+
+            // axios.post(`${config.baseApi}/ticket/note-post`, {
+            //     notes: 'Notified the user for review',
+            //     current_user: empInfo.user_name,
+            //     ticket_id: ticket_id
+            // });
+
+            await supabase.from('notes_master').insert({
+                note: 'Notified the user for review',
+                ticket_id: ticket_id,
+                created_by: empInfo.user_name,
+                created_at: new Date()
+            })
+
+            await supabase.from('ticket_logs').insert({
+                ticket_id: ticket_id,
+                created_by: empInfo.user_name,
+                time_date: new Date(),
+                changes_made: `${empInfo.user_name} placed a note "${notes}"`
+            });
+
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } catch (err) {
+            console.error('Error notifying review:', err);
+        }
+    }
+
+    //Accept ticket function
+    const HandleAcceptButton = async () => {
+        const empInfo = JSON.parse(localStorage.getItem('user'));
+
+        try {
+            setLoading(true);
+
+            // const fetchticket = await axios.get(`${config.baseApi}/ticket/ticket-by-id`, {
+            //     params: { id: ticket_id }
+            // });
+
+            const fetchticket = await supabase.from('ticket_master').select('*').eq('ticket_id', ticket_id).single();
+            const ticket = Array.isArray(fetchticket.data) ? fetchticket.data[0] : fetchticket.data;
+            console.log(ticket.updating_by)
+
+            if (ticket.is_locked === false || ticket.updating_by === empInfo.user_name || ticket.updating_by === null) {
+                // axios.post(`${config.baseApi}/ticket/update-accept-ticket`, {
+                //     user_id: empInfo.user_id,
+                //     ticket_id: ticket_id,
+                //     ticket_status: formData.ticket_status
+                // });
+                if (formData.ticket_status === 'closed') {
+                    console.log('CLOSED TICKET');
+                    // const closed = await knex('ticket_master').where('ticket_id', ticket_id).update({
+                    //     assigned_to: empInfo.user_name,
+                    //     updated_at: new Date(),
+                    //     responded_at: new Date(),
+                    //     ticket_status: 're-opened',
+                    //     is_reviewed: false
+                    // })
+                    await supabase.from('ticket_master').update({
+                        assigned_to: empInfo.user_name,
+                        updated_at: new Date(),
+                        responded_at: new Date(),
+                        ticket_status: 're-opened',
+                        is_reviewed: false
+                    }).eq('ticket_id', ticket_id);
+
+
+                    // await knex('ticket_logs').insert({
+                    //     ticket_id: ticket_id,
+                    //     ticket_status: formData.ticket_status,
+                    //     ticket_subject: formData.ticket_subject,
+                    //     ticket_urgencyLevel: formData.ticket_urgencyLevel,
+                    //     ticket_category: formData.ticket_category,
+                    //     created_by: empInfo.user_name,
+                    //     time_date: new Date(),
+                    //     changes_made: `${empInfo.user_name} accepted closed ticket and re-opened the ticket, Ticket ID: ${ticket_id}`
+                    // })
+
+                    await supabase.from('ticket_logs').insert({
+                        ticket_id: ticket_id,
+                        ticket_status: formData.ticket_status,
+                        ticket_subject: formData.ticket_subject,
+                        ticket_urgencyLevel: formData.ticket_urgencyLevel,
+                        ticket_category: formData.ticket_category,
+                        created_by: empInfo.user_name,
+                        time_date: new Date(),
+                        changes_made: `${empInfo.user_name} accepted closed ticket and re-opened the ticket, Ticket ID: ${ticket_id}`
+                    })
+                } else {
+                    // await knex('ticket_master').where('ticket_id', ticket_id).update({
+                    //     assigned_to: empInfo.user_name,
+                    //     updated_at: new Date(),
+                    //     responded_at: new Date(),
+                    //     ticket_status: 'assigned'
+                    // })
+
+                    await supabase.from('ticket_master').update({
+                        assigned_to: empInfo.user_name,
+                        updated_at: new Date(),
+                        responded_at: new Date(),
+                        ticket_status: 'assigned'
+                    }).eq('ticket_id', ticket_id)
+                }
+
+                if (formData.ticket_status === 'open') {
+                    await supabase.from('ticket_logs').insert({
+                        ticket_id: ticket_id,
+                        ticket_status: formData.ticket_status,
+                        ticket_subject: formData.ticket_subject,
+                        ticket_urgencyLevel: formData.ticket_urgencyLevel,
+                        ticket_category: formData.ticket_category,
+                        created_by: empInfo.user_name,
+                        time_date: new Date(),
+                        changes_made: `${empInfo.user_name} accepted open ticket and was assigned ,Ticket ID: ${ticket_id}`
+                    })
+
+                }
+                if (formData.ticket_status === 'resolved') {
+                    await supabase.from('ticket_logs').insert({
+                        ticket_id: ticket_id,
+                        ticket_status: formData.ticket_status,
+                        ticket_subject: formData.ticket_subject,
+                        ticket_urgencyLevel: formData.ticket_urgencyLevel,
+                        ticket_category: formData.ticket_category,
+                        created_by: empInfo.user_name,
+                        time_date: new Date(),
+                        changes_made: `${empInfo.user_name} accepted resolved ticket and was assigned, Ticket ID: ${ticket_id}`
+                    })
+                }
+
+
+
+                //Notify User
+                // await axios.post(`${config.baseApi}/ticket/notified-true`, {
+                //     ticket_id: ticket_id,
+                //     user_id: empInfo.user_id
+                // })
+
+                await supabase.from('ticket_master').update({
+                    is_notified: true
+                }).eq('ticket_id', ticket_id)
+
+                console.log(formData.ticket_status)
+                setIsEditable(true)
+                setShowAcceptButton(false)
+                window.location.reload();
+            } else if (ticket.is_locked === true || ticket.updating_by !== empInfo.user_name) {
+                setLoading(false)
+                setError(`${ticket.updating_by} is currently working on this ticket`);
+                return;
+            }
+
+
+
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    //Handle changes 
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => {
+            const updatedForm = { ...prev, [name]: value };
+            const fieldsToCheck = ['ticket_subject', 'tag_id', 'notes', 'assigned_to', 'assigned_collaborators', 'ticket_for', 'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory'];
+            const changed = fieldsToCheck.some(field => updatedForm[field] !== originalData[field]);
+
+            setHasChanges(changed);
+
+            return updatedForm;
+        });
+    };
+
+
+
+
+
+
+    useEffect(() => {
+        if (!ticket_id || !empInfo?.user_name) return;
+
+        const currentUser = empInfo.user_name;
+
+        let intervalId = null;
+        let isMounted = true;
+
+        // Lock the asset
+        const lockAsset = async () => {
+            try {
+                const { data: asset, error } = await supabase
+                    .from('ticket_master')
+                    .select('is_locked, updating_by')
+                    .eq('ticket_id', ticket_id)
+                    .single();
+
+                if (error) throw error;
+
+                // If locked by someone else
+                if (asset.is_locked === "1" && asset.updating_by && asset.updating_by !== currentUser) {
+                    if (isMounted) {
+                        setLockError(`This ticket is being edited by ${asset.updating_by}`);
+                        setLockModal(true);
+
+                    }
+                    return;
+                }
+
+                // Lock for current user
+                await supabase
+                    .from('ticket_master')
+                    .update({
+                        is_locked: "1",
+                        updating_by: currentUser,
+                        locked_at: new Date()
+                    })
+                    .eq('ticket_id', ticket_id);
+
+                if (isMounted) {
+
+                    setLockModal(false);
+                }
+            } catch (err) {
+                console.error('Lock error:', err);
+            }
+        };
+
+        // Check lock status periodically
+        const checkLockStatus = async () => {
+            try {
+                const { data: asset, error } = await supabase
+                    .from('ticket_master')
+                    .select('is_locked, updating_by')
+                    .eq('ticket_id', ticket_id)
+                    .single();
+
+                if (error) throw error;
+
+                if (isMounted) {
+                    // If locked by someone else
+                    if (asset.is_locked === "1" && asset.updating_by && asset.updating_by !== currentUser) {
+                        setLockModal(true);
+                        setLockError(`This asset is being edited by ${asset.updating_by}`);
+
+                    }
+                    // If current user has the lock or no lock
+                    else if (asset.is_locked === "0" || asset.updating_by === currentUser) {
+                        setLockModal(false);
+
+                    }
+                }
+            } catch (err) {
+                console.error('Check lock error:', err);
+            }
+        };
+
+        // Unlock the asset
+        const unlockAsset = async () => {
+            try {
+                await supabase
+                    .from('ticket_master')
+                    .update({
+                        is_locked: "0",
+                        updating_by: null,
+                        locked_at: null
+                    })
+                    .eq('ticket_id', ticket_id)
+                    .eq('updating_by', currentUser); // Only unlock if current user owns the lock
+            } catch (err) {
+                console.error('Unlock error:', err);
+            }
+        };
+
+        // Initial lock
+        lockAsset();
+
+        // Start polling every 5 seconds
+        intervalId = setInterval(checkLockStatus, 5000);
+
+        // Handle page close/refresh
+        const handleBeforeUnload = () => {
+            unlockAsset();
+        };
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        // Cleanup
+        return () => {
+            isMounted = false;
+            if (intervalId) clearInterval(intervalId);
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+            unlockAsset();
+        };
+    }, [ticket_id, empInfo?.user_name]);
+    // //once page was open it will check if assets is lock or no
+    useEffect(() => {
+        const fetch = async () => {
+            try {
+                const res = await supabase.from('ticket_master').select('*').eq('ticket_id', ticket_id).single();
+
+                const assets = Array.isArray(res.data) ? res.data[0] : res.data;
+
+                if (assets.is_locked === '0' || assets.updating_by === empInfo.user_name || assets.updating_by === null) {
+                    setLockModal(false)
+                }
+                else {
+                    setLockModal(true)
+                }
+            } catch (err) {
+                console.log('Unable to get computer details: ', err);
+            }
+        }
+        fetch();
+    }, [close])
+
+
+
+
+
+    //resolved checker
+    const handleChecker = async () => {
+        if (!formData.ticket_category) {
+            setLoading(false)
+            setError('Unable to save empty Category fields! Please try again!');
+            return;
+        } if (!formData.ticket_SubCategory) {
+            setLoading(false)
+            setError('Unable to save empty Sub-Category fields! Please try again!');
+            return;
+        } if (!formData.ticket_urgencyLevel) {
+            setLoading(false)
+            setError('Unable to save empty Urgency fields! Please try again!');
+            return;
+
+        } if (!formData.ticket_category || !formData.ticket_SubCategory || !formData.ticket_urgencyLevel) {
+            setLoading(false)
+            setError('Unable to save empty fields! Please try again!');
+            return;
+        }
+        if (formData.ticket_status === 'resolved') {
+            setShowCloseResolutionModal(true)
+        } else (
+            handleSave()
+        )
+    }
+
+    //resolution function
+    const HandleResolution = async (e) => {
+
+        console.log('TAT:' + turnaroundtime)
+        e.preventDefault();
+
+        const empInfo = JSON.parse(localStorage.getItem('user'));
+
+        console.log({
+            'tat': turnaroundtime,
+            'user_id': empInfo.user_id,
+            'ticket_id': ticket_id,
+            'user_name': empInfo.user_name,
+            'category': formData.ticket_category,
+            'sub_category': formData.ticket_SubCategory
+        })
+
+        if (!turnaroundtime) {
+            setError('Unable to save empty Turn Around Time! Please try again!');
+            return
+        }
+
+        try {
+            setLoading(true);
+            // await axios.post(`${config.baseApi}/ticket/note-post`, {
+            //     notes: 'Resolution: ' + resolution,
+            //     current_user: empInfo.user_name,
+            //     ticket_id: ticket_id
+            // });
+            await supabase.from('notes_master').insert({
+                note: 'Resolution: ' + resolution,
+                created_by: empInfo.user_name,
+                ticket_id: ticket_id,
+                created_at: new Date()
+            })
+
+            // await axios.post(`${config.baseApi}/ticket/notified-true`, {
+            //     ticket_id: ticket_id,
+            //     user_id: empInfo.user_id
+            // })
+
+            await supabase.from('ticket_master').update({
+                is_notified: true
+            }).eq('ticket_id', ticket_id)
+
+            // await axios.post(`${config.baseApi}/ticket/turnaround-time`, {
+            //     tat: turnaroundtime,
+            //     user_id: empInfo.user_id,
+            //     ticket_id: ticket_id,
+            //     user_name: empInfo.user_name,
+            //     category: formData.ticket_category,
+            //     sub_category: formData.ticket_SubCategory,
+            //     created_by: empInfo.user_name,
+            //     ticket_type: 'support',
+            //     ticket_created_at: formData.created_at
+            // })
+
+            await supabase.from('tat_master').insert({
+                tat: turnaroundtime,
+                user_id: empInfo.user_id,
+                ticket_id: ticket_id,
+                user_name: empInfo.user_name,
+                category: formData.ticket_category,
+                sub_category: formData.ticket_SubCategory,
+                created_by: empInfo.user_name,
+                created_at: new Date(),
+                ticket_type: 'support',
+                ticket_created_at: formData.created_at
+            })
+
+            setResolution('');
+            console.log('Submitted a resolution succesfully');
+            handleSave();
+        } catch (err) {
+            console.log('Unable to save resolution note: ', err)
+        }
+
+    }
+
+    // Add this function before the handleSave function
+    const handleNoteFileChange = (e) => {
+        const files = Array.from(e.target.files);
+        setNoteAttachments(files);
+    };
+
+    const handleSave = async () => {
+        try {
+            setLoading(true);
+
+            const { data: ticketData, error: ticketError } = await supabase
+                .from('ticket_master')
+                .select('*')
+                .eq('ticket_id', ticket_id)
+                .single();
+
+            if (ticketError) throw ticketError;
+            const ticket = ticketData;
+
+            // Lock check
+            if (ticket.is_locked === true && ticket.updating_by !== empInfo.user_name && ticket.updating_by !== null) {
+                setLoading(false);
+                setError(`${ticket.updating_by} is currently working on this ticket`);
+                return;
+            }
+
+            // Validation for in-progress
+            if (formData.ticket_status === 'in-progress') {
+                if (!formData.ticket_category) { setLoading(false); setError('Unable to save empty Category fields!'); return; }
+                if (!formData.ticket_SubCategory) { setLoading(false); setError('Unable to save empty Sub-Category fields!'); return; }
+                if (!formData.ticket_urgencyLevel) { setLoading(false); setError('Unable to save empty Urgency fields!'); return; }
+            }
+
+            // Detect changed fields
+            const changedFields = [];
+            const fieldsToCheck = ['ticket_subject', 'tag_id', 'notes', 'assigned_collaborators', 'ticket_for',
+                'ticket_status', 'ticket_urgencyLevel', 'ticket_category', 'ticket_SubCategory', 'Description', 'Attachments'];
+            fieldsToCheck.forEach(field => {
+                const original = originalData[field];
+                const current = formData[field];
+                if ((original ?? '') !== (current ?? '')) {
+                    changedFields.push(`${empInfo.user_name} Changed '${field}' from '${original}' to '${current}'`);
+                }
+            });
+            const changesMade = changedFields.join('; ');
+
+            // Get ticket_for user info
+            const { data: ticketForUser, error: tfError } = await supabase
+                .from('users_master')
+                .select('*')
+                .eq('user_name', formData.ticket_for)
+                .single();
+            if (tfError) throw tfError;
+
+            // Handle attachments — upload new files to Supabase Storage
+            let attachmentPaths = formData.Attachments || '';
+            if (formData.attachmentFiles && formData.attachmentFiles.length > 0) {
+                const uploadedPaths = await Promise.all(
+                    formData.attachmentFiles.map(async (file) => {
+                        const filePath = `tickets/${ticket_id}/${Date.now()}_${file.name}`;
+                        const { error: uploadError } = await supabase.storage
+                            .from('notes_upload') // 🔁 Replace with your actual bucket name
+                            .upload(filePath, file);
+                        if (uploadError) throw uploadError;
+                        return filePath;
+                    })
+                );
+                attachmentPaths = uploadedPaths.join(',');
+            }
+
+            // Build the update payload
+            const updatePayload = {
+                ticket_subject: formData.ticket_subject,
+                tag_id: formData.tag_id,
+                ticket_status: formData.ticket_status,
+                ticket_category: formData.ticket_category,
+                ticket_SubCategory: formData.ticket_SubCategory,
+                ticket_urgencyLevel: formData.ticket_urgencyLevel,
+                ticket_for: formData.ticket_for,
+                // ticket_for_UserId: ticketForUser.user_id,
+                Description: formData.Description,
+                Attachments: attachmentPaths,
+                assigned_to: formData.assigned_to,
+
+                assigned_location: ticketForUser.emp_location,
+                assigned_collaborators: formData.assigned_collaborators || null,
+                updated_by: empInfo.user_id,
+                // changes_made: changesMade,
+            };
+
+            // Mark notification as seen
+            await supabase
+                .from('ticket_master') // 🔁 Replace with your actual notifications table
+                .update({ is_notified: true })
+                .eq('ticket_id', ticket_id)
+
+
+            // Main ticket update
+            const { error: updateError } = await supabase
+                .from('ticket_master')
+                .update(updatePayload)
+                .eq('ticket_id', ticket_id);
+            if (updateError) throw updateError;
+
+            // Handle open/assigned status logic
+            if (formData.ticket_status === 'open') {
+                if (!formData.assigned_to || formData.assigned_to.trim() === '' || originalData.assigned_to === formData.assigned_to) {
+                    await supabase
+                        .from('ticket_master')
+                        .update({ assigned_to: '', ticket_status: 'open', updated_by: empInfo.user_id })
+                        .eq('ticket_id', ticket_id);
+                } else if (originalData.assigned_to !== formData.assigned_to) {
+                    await supabase
+                        .from('ticket_master')
+                        .update({
+                            assigned_to: hdUser.user_name,
+                            ticket_status: 'assigned',
+                            updated_by: empInfo.user_id,
+                            tag_id: formData.tag_id
+                        })
+                        .eq('ticket_id', ticket_id);
+                }
+            }
+
+            // Handle note submission
+            if (notes && notes !== template) {
+                // Upload note attachments to Supabase Storage
+                let notePaths = [];
+                if (noteAttachments.length > 0) {
+                    notePaths = await Promise.all(
+                        noteAttachments.map(async (file) => {
+                            const filePath = `notes/${ticket_id}/${Date.now()}_${file.name}`;
+                            const { error: uploadError } = await supabase.storage
+                                .from('notes_upload')
+                                .upload(filePath, file);
+                            if (uploadError) throw uploadError;
+
+                            // ✅ Get public URL instead of storing just the path
+                            const { data: urlData } = supabase.storage
+                                .from('notes_upload')
+                                .getPublicUrl(filePath);
+                            console.log('Generated public URL:', urlData.publicUrl); // 👈 add this
+
+                            return urlData.publicUrl;
+                        })
+                    );
+                }
+
+                const { error: noteError } = await supabase
+                    .from('notes_master') // 🔁 Replace with your actual notes table name
+                    .insert({
+                        ticket_id: ticket_id,
+                        note: notes,
+                        created_by: empInfo.user_name,
+                        note_upload_path: notePaths.join(',') || null,
+                        created_at: new Date().toISOString(),
+                    });
+                if (noteError) throw noteError;
+
+                // Refresh notes
+                const { data: updatedNotes } = await supabase
+                    .from('notes_master') // 🔁 Replace with your actual notes table name
+                    .select('*')
+                    .eq('ticket_id', ticket_id);
+                setAllNotes(updatedNotes);
+
+                setNoteAlert(false);
+                setNotes(template);
+                setNoteAttachments([]);
+                setAttachmentButtonState(false);
+                setSuccessful('Note added successfully');
+            }
+
+            setLoading(false);
+            setSuccessful('Ticket updated successfully.');
+            setOriginalData(formData);
+            setHasChanges(false);
+            window.location.reload();
+
+        } catch (err) {
+            setLoading(false);
+            console.error('Error updating ticket:', err);
+            setError('Failed to update ticket. Please try again later.');
+        }
+    };
+
+    const renderAttachment = () => {
+        if (!formData.Attachments || formData.Attachments.length === 0)
+            return <div className="text-muted fst-italic">No attachments</div>;
+
+        // Handle array or string format
+        let filePaths = [];
+        if (Array.isArray(formData.Attachments)) {
+            filePaths = formData.Attachments;
+        } else if (typeof formData.Attachments === 'string') {
+            try {
+                // Try parsing as JSON array first
+                const parsed = JSON.parse(formData.Attachments);
+                filePaths = Array.isArray(parsed) ? parsed : [parsed];
+            } catch {
+                // Fallback: split by comma or semicolon
+                const separator = formData.Attachments.includes(';') ? ';' : ',';
+                filePaths = formData.Attachments.split(separator);
+            }
+        }
+
+        const getFileIcon = (filename) => {
+            const ext = filename.split('.').pop().toLowerCase();
+            if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) return <FaFileImage size={28} className="text-primary" />;
+            if (['pdf'].includes(ext)) return <FaFilePdf size={28} className="text-danger" />;
+            if (['doc', 'docx'].includes(ext)) return <FaFileWord size={28} className="text-info" />;
+            return <FaFileAlt size={28} className="text-secondary" />;
+        };
+
+        // ✅ AFTER:
+        return (
+            <div className="d-flex flex-column">
+                {filePaths.map((filePath, idx) => {
+                    const cleanPath = filePath.trim();
+                    const fileName = decodeURIComponent(cleanPath.split('/').pop());
+                    const shortName = fileName.length > 25 ? fileName.slice(0, 25) + '...' : fileName;
+
+                    // ✅ Generate proper Supabase public URL from stored path
+                    const { data: urlData } = supabase.storage.from('uploads').getPublicUrl(cleanPath);
+                    const fileUrl = urlData.publicUrl;
+
+                    return (
+                        <Card key={idx} className="shadow-sm border-0 mb-1" style={{ backgroundColor: '#fdedd3ff' }}>
+                            <Card.Body className="d-flex align-items-center justify-content-between p-2">
+                                <div className="d-flex align-items-center">
+                                    <div className="me-3">{getFileIcon(fileName)}</div>
+                                    <div className="text-truncate" style={{ maxWidth: '250px' }}>{shortName}</div>
+                                </div>
+                                <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                                    <Button variant="outline-primary" size="sm">View</Button>
+                                </a>
+                            </Card.Body>
+                        </Card>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    //Add collaboration function
+    const AddCollab = () => {
+        const empInfo = JSON.parse(localStorage.getItem('user'));
+        if (empInfo.user_name === formData.assigned_to) {
+            setCollaboratorState(true)
+        } else {
+            setCollaboratorState(false)
+            setLoading(false)
+            setError('Make sure you are assigned to this ticket to add collaborators!')
+        }
+    }
+
+    //Archive function
+    const Archive = async () => {
+        try {
+            // const fetchticket = await axios.get(`${config.baseApi}/ticket/ticket-by-id`, {
+            //     params: { id: ticket_id }
+            // });
+
+            const fetchticket = await supabase.from('ticket_master').select('*').eq('ticket_id', ticket_id).single();
+            const ticket = Array.isArray(fetchticket.data) ? fetchticket.data[0] : fetchticket.data;
+            if (ticket.is_locked === false || ticket.updating_by === empInfo.user_name || ticket.updating_by === null) {
+
+                try {
+                    setLoading(true)
+                    // await axios.post(`${config.baseApi}/ticket/archive-ticket`, {
+                    //     ticket_id: ticket_id,
+                    //     updated_by: empInfo.user_name
+                    // })
+
+                    await supabase.from('ticket_master').update({
+                        updated_by: empInfo.user_name,
+                        is_active: 0,
+                        updated_at: new Date()
+                    }).eq('ticket_id', ticket_id)
+                    console.log('Ticket archived successfully');
+                    setSuccessful('Ticket archived successfully');
+                    window.location.reload();
+
+                } catch (err) {
+                    console.log(err)
+                }
+            } else if (ticket.is_locked === true || ticket.updating_by !== empInfo.user_name) {
+                setLoading(false)
+                setError(`${ticket.updating_by} is currently working on this ticket`);
+                return;
+            }
+        }
+        catch (err) {
+            console.log('Unable to get ticket: ', err)
+        }
+
+
+    }
+
+    //Unarchive Function
+    const UnArchive = async () => {
+        console.log('Working');
+        try {
+            setLoading(true)
+            // await axios.post(`${config.baseApi}/ticket/un-archive-ticket`, {
+            //     ticket_id: ticket_id,
+            //     updated_by: empInfo.user_name
+            // })
+
+            await supabase.from('ticket_master').update({
+                is_active: 1,
+                updated_by: empInfo.user_name,
+                updated_at: new Date()
+            }).eq('ticket_id', ticket_id)
+            console.log('Ticket un-archived successfully');
+            setSuccessful('Ticket un-archived successfully');
+            window.location.reload();
+
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    //Open modal logs
+    const HandleView = () => {
+        setModalTitle("Ticket Logs");
+        setModalContent(<ViewTicketLogs ticket_id={ticket_id} />);
+        setShowModal(true);
+    };
+
+    //Open modal TAT
+    const HandleViewTAT = () => {
+        setModalTitleTAT("Ticket Turn Around Time Details");
+        setModalContentTAT(<ViewTicketTAT ticket_id={ticket_id} />);
+        setShowModalTAT(true);
+    };
+
+
+    const renderNoteAttachments = (attachmentPath) => {
+        if (!attachmentPath) return null;
+
+        // Handle both comma and semicolon separators
+        const separator = attachmentPath.includes(';') ? ';' : ',';
+        const filePaths = attachmentPath.split(separator).filter(path => path.trim());
+
+        if (filePaths.length === 0) return null;
+
+        const getFileIcon = (filename) => {
+            const ext = filename.split('.').pop().toLowerCase();
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return <FaFileImage size={20} className="text-primary" />;
+            if (['pdf'].includes(ext)) return <FaFilePdf size={20} className="text-danger" />;
+            if (['doc', 'docx'].includes(ext)) return <FaFileWord size={20} className="text-info" />;
+            return <FaFileAlt size={20} className="text-secondary" />;
+        };
+
+        return (
+            <div className="mt-2">
+                <small className="text-muted">Attachments:</small>
+                {filePaths.map((filePath, idx) => {
+                    const cleanUrl = filePath.trim();
+                    // ✅ Use URL directly, extract filename for display
+                    const fileName = decodeURIComponent(cleanUrl.split('/').pop());
+
+                    return (
+                        <div key={idx} className="mt-1">
+                            <a href={cleanUrl} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
+                                <div className="d-flex align-items-center">
+                                    <div className="me-2">{getFileIcon(fileName)}</div>
+                                    <small>{fileName.length > 30 ? fileName.slice(0, 30) + '...' : fileName}</small>
+                                </div>
+                            </a>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+
+    return (
+        <Container
+            fluid
+            className="pt-100 pb-4"
+            style={{
+                background: 'linear-gradient(to bottom, #ffe798, #b8860b)',
+                minHeight: '100vh',
+                paddingTop: '100px',
+            }}
+        >
+            {/* Alert Component */}
+            {successful && (
+                <div
+                    className="position-fixed start-50 l translate-middle-x"
+                    style={{ top: '100px', zIndex: 9999, minWidth: '300px' }}
+                >
+                    <Alert variant="success" onClose={() => setSuccessful('')} dismissible>
+                        {successful}
+                    </Alert>
+                </div>
+            )}
+            {error && (
+                <div
+                    className="position-fixed start-50 l translate-middle-x"
+                    style={{ top: '100px', zIndex: 9999, minWidth: '300px' }}
+                >
+                    <Alert variant="danger" onClose={() => setError('')} dismissible>
+                        {error}
+                    </Alert>
+                </div>
+            )}
+
+            {/* Modal for adding new subcategory */}
+            <Modal show={showAddSubCategoryModal} onHide={() => !isAddingSubCategory && setShowAddSubCategoryModal(false)} centered>
+                <Modal.Header closeButton={!isAddingSubCategory}>
+                    <Modal.Title>Add New Subcategory</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form.Group>
+                        <Form.Label>Category</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={formData.ticket_category ? formData.ticket_category.charAt(0).toUpperCase() + formData.ticket_category.slice(1) : ''}
+                            disabled
+                        />
+                    </Form.Group>
+                    <Form.Group className="mt-3">
+                        <Form.Label>New Subcategory Name</Form.Label>
+                        <Form.Control
+                            type="text"
+                            placeholder="Enter new subcategory"
+                            value={newSubCategoryName}
+                            onChange={(e) => setNewSubCategoryName(e.target.value)}
+                            disabled={isAddingSubCategory}
+                            autoFocus
+                        />
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowAddSubCategoryModal(false)} disabled={isAddingSubCategory}>
+                        Cancel
+                    </Button>
+                    <Button variant="primary" onClick={handleAddSubCategory} disabled={isAddingSubCategory}>
+                        {isAddingSubCategory ? 'Adding...' : 'Add Subcategory'}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            <AnimatedContent
+                distance={100}
+                direction="vertical"
+                reverse={true}
+                duration={0.8}
+                ease="power3.out"
+                initialOpacity={0}
+                animateOpacity
+                scale={1.0}
+                threshold={0.1}
+                delay={0}
+            >
+                <Container className="bg-white p-4 rounded-3 shadow-sm">
+                    <Row>
+                        <Col lg={8}>
+                            <Row className="mb-3">
+                                <div className="d-flex justify-content-between align-items-center">
+                                    <Row className="align-items-center">
+                                        <Col xs="auto">
+                                            <h3 className="fw-bold text-dark mb-0">Support Ticket Details</h3>
+                                            <Row className="align-items-center g-1">
+                                                <Col xs="auto">
+                                                    <h7
+                                                        style={{
+                                                            fontStyle: "italic",
+                                                            color: "#2c7e36ff",
+                                                            cursor: "pointer",
+                                                            textDecoration: "none",
+                                                        }}
+                                                        onMouseEnter={(e) => (e.target.style.textDecoration = "underline")}
+                                                        onMouseLeave={(e) => (e.target.style.textDecoration = "none")}
+                                                        onClick={HandleView}
+                                                    >
+                                                        view logs
+                                                    </h7>
+                                                </Col>
+                                                <Col xs="auto">|</Col>
+                                                <Col xs="auto">
+                                                    <h7
+                                                        style={{
+                                                            fontStyle: "italic",
+                                                            color: "#2c7e36ff",
+                                                            cursor: "pointer",
+                                                            textDecoration: "none",
+                                                        }}
+                                                        onMouseEnter={(e) => (e.target.style.textDecoration = "underline")}
+                                                        onMouseLeave={(e) => (e.target.style.textDecoration = "none")}
+                                                        onClick={HandleViewTAT}
+                                                    >
+                                                        view TAT details
+                                                    </h7>
+                                                </Col>
+
+
+                                            </Row>
+                                        </Col>
+
+                                        {/* Button */}
+                                        {archiveTextState && (
+                                            <Col xs="auto">
+                                                <h4 className="fw-bold text-secondary mb-0">(archived)</h4>
+                                            </Col>
+                                        )}
+                                    </Row>
+
+                                    <div className="d-flex gap-2">
+                                        {/* Archive button */}
+                                        {archBTN1 && (
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                style={{ width: '100px', minHeight: '40px' }}
+                                                onClick={() => setArchiveState(true)}
+                                                title="Archive Ticket"
+                                            >
+                                                <FeatherIcon icon="archive" />
+                                            </Button>
+                                        )}
+
+                                        {/* Un-Archive Button */}
+                                        {archBTN2 && (
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                style={{ width: '100px', minHeight: '40px' }}
+                                                onClick={() => setUnArchiveState(true)}
+                                                title="Unarchive Ticket"
+                                            >
+                                                <FeatherIcon icon="airplay" />
+                                            </Button>
+                                        )}
+
+                                        {/* Notify Button */}
+                                        {notifyReview && (
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                style={{ width: '100px', minHeight: '40px' }}
+                                                onClick={handleNotifyReview}
+                                            >
+                                                <FeatherIcon icon="bell" />
+                                            </Button>
+                                        )}
+
+                                        {/* Accept button */}
+                                        {showAcceptButton && (
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                style={{ width: '200px', minHeight: '40px' }}
+                                                onClick={HandleAcceptButton}
+                                            >
+                                                Accept
+                                            </Button>
+                                        )}
+
+                                        {/* Save Changes Button */}
+                                        {hasChanges && (
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                style={{ width: '200px', minHeight: '40px' }}
+                                                onClick={handleChecker}
+                                            >
+                                                Save Changes
+                                            </Button>
+                                        )}
+
+                                    </div>
+                                </div>
+                            </Row>
+
+                            {/* DATES */}
+                            <h6 className="text-muted fw-semibold mb-2">Dates</h6>
+                            <Row>
+                                <Form.Group as={Col} md={6} className="mb-2">
+                                    <Form.Label>Created at</Form.Label>
+                                    <Form.Control
+                                        value={
+                                            formData.created_at
+                                                ? new Date(formData.created_at).toLocaleString()
+                                                : '-'
+                                        }
+                                        disabled
+                                    />
+                                </Form.Group>
+                                <Form.Group as={Col} md={6} className="mb-2" hidden>
+                                    <Form.Label>Updated at</Form.Label>
+                                    <Form.Control
+                                        name="updated_at"
+                                        value={
+                                            formData.updated_at
+                                                ? new Date(formData.updated_at).toLocaleString()
+                                                : '-'
+                                        }
+                                        disabled
+                                    />
+                                </Form.Group>
+                                <Form.Group as={Col} md={6} className="mb-2" hidden>
+                                    <Form.Label>Responded at</Form.Label>
+                                    <Form.Control
+                                        name="responded_at"
+                                        value={
+                                            formData.responded_at
+                                                ? new Date(formData.responded_at).toLocaleString()
+                                                : '-'
+                                        }
+                                        disabled
+                                    />
+                                </Form.Group>
+                                <Form.Group as={Col} md={6} className="mb-2" hidden>
+                                    <Form.Label>Resolved at</Form.Label>
+                                    <Form.Control
+                                        name="resolved_at"
+                                        value={
+                                            formData.resolved_at
+                                                ? new Date(formData.resolved_at).toLocaleString()
+                                                : '-'
+                                        }
+                                        disabled
+                                    />
+                                </Form.Group>
+                            </Row>
+
+                            {/* USER DETAILS */}
+                            <h6 className="text-muted fw-semibold mt-4 mb-2">User Details</h6>
+                            <Row>
+                                <Col md={6} className="mb-2">
+                                    <Form.Label>Created By</Form.Label>
+                                    <InputGroup>
+                                        <InputGroup.Text>
+                                            <FeatherIcon icon="user" />
+                                        </InputGroup.Text>
+                                        <Form.Control name="created_by" value={formData.created_by ?? '-'} disabled />
+                                    </InputGroup>
+                                </Col>
+                                <Col md={6} className="mb-2" style={{ position: 'relative' }}>
+                                    <Form.Label>Employee</Form.Label>
+                                    <InputGroup style={{ height: '43px' }}>
+                                        {/* Icon trigger */}
+                                        <div style={{ position: 'relative' }}>
+                                            <InputGroup.Text
+                                                style={{ cursor: 'pointer', height: '43px' }}
+                                                onClick={() => setShowUserCard(prev => !prev)}
+                                            >
+                                                <FeatherIcon icon="user" />
+                                            </InputGroup.Text>
+
+                                            {/* Floating Card */}
+                                            {showUserCard && formData.ticket_for && (() => {
+                                                const selectedUser = allUser.find(u => u.user_name === formData.ticket_for);
+                                                if (!selectedUser) return null;
+
+                                                return (
+                                                    <div
+                                                        style={{
+                                                            position: 'absolute',
+                                                            top: '50px',
+                                                            left: 0,
+                                                            zIndex: 1000,
+                                                            minWidth: '220px',
+                                                            padding: '12px',
+                                                            border: '1px solid #ccc',
+                                                            borderRadius: '8px',
+                                                            backgroundColor: '#fff',
+                                                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                                            whiteSpace: 'nowrap'
+                                                        }}
+                                                    >
+                                                        <div style={{ display: 'flex', marginBottom: '6px' }}><strong style={{ minWidth: '70px' }}>Position:</strong> {selectedUser.emp_position}</div>
+                                                        <div style={{ display: 'flex', marginBottom: '6px' }}><strong style={{ minWidth: '70px' }}>Email:</strong> {selectedUser.emp_email}</div>
+                                                        <div style={{ display: 'flex', marginBottom: '6px' }}><strong style={{ minWidth: '70px' }}>Phone:</strong> {selectedUser.emp_phone}</div>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </div>
+
+                                        {/* Employee Select */}
+                                        <div style={{ flex: 1 }}>
+                                            <Select
+                                                name="ticket_for"
+                                                value={
+                                                    allUser.find(u => u.user_name === formData.ticket_for)
+                                                        ? {
+                                                            value: formData.ticket_for,
+                                                            label: `${allUser.find(u => u.user_name === formData.ticket_for).emp_FirstName} ${allUser.find(u => u.user_name === formData.ticket_for).emp_LastName}`
+                                                        }
+                                                        : formData.ticket_for
+                                                            ? { value: formData.ticket_for, label: formData.ticket_for } // fallback if not in options
+                                                            : null
+                                                }
+                                                onChange={option => {
+                                                    handleChange({
+                                                        target: {
+                                                            name: 'ticket_for',
+                                                            value: option ? option.value : ''
+                                                        }
+                                                    });
+                                                    setShowUserCard(false);
+                                                }}
+                                                options={allUser.map(user => ({
+                                                    value: user.user_name,
+                                                    label: `${user.emp_FirstName} ${user.emp_LastName}`
+                                                }))}
+                                                isDisabled={!isEditable}
+                                                isClearable
+                                                placeholder="Select Employee"
+                                                styles={customSelectStyles}
+                                                classNamePrefix="react-select"
+                                            />
+
+                                        </div>
+                                    </InputGroup>
+                                </Col>
+
+
+                                <Col md={6} className="mb-2">
+                                    <Form.Label>Department</Form.Label>
+                                    <InputGroup>
+                                        <InputGroup.Text>
+                                            <FeatherIcon icon="briefcase" />
+                                        </InputGroup.Text>
+                                        <Form.Control value={ticketForData.emp_department ?? '-'} disabled />
+                                    </InputGroup>
+                                </Col>
+                                <Col md={6} className="mb-2">
+                                    <Form.Label>Location</Form.Label>
+                                    <InputGroup>
+                                        <InputGroup.Text>
+                                            <FeatherIcon icon="globe" />
+                                        </InputGroup.Text>
+                                        <Form.Control value={location ?? ''} disabled />
+                                    </InputGroup>
+                                </Col>
+                                {/* XXX */}
+                                <Col md={6} className="mb-2" style={{ position: 'relative' }}>
+                                    <Form.Label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span>Assigned To</span>
+                                        <span onClick={AddCollab} style={{ fontSize: '0.85rem', color: '#002E05', cursor: 'pointer' }}>
+                                            Add collaborators
+                                        </span>
+                                    </Form.Label>
+
+                                    <InputGroup style={{ height: '43px' }} >
+                                        <div style={{ position: 'relative' }}>
+                                            <InputGroup.Text>
+                                                <FeatherIcon icon="user" />
+                                            </InputGroup.Text>
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <Select
+
+                                                name="assigned_to"
+                                                placeholder="Select Employee"
+                                                // value={`${hdUser.emp_FirstName} ${hdUser.emp_LastName}`}
+                                                value={
+                                                    allHDUser.find(u => u.user_name === formData.assigned_to)
+                                                        ? {
+                                                            value: formData.assigned_to,
+                                                            label: `${allHDUser.find(u => u.user_name === formData.assigned_to).emp_FirstName} ${allHDUser.find(u => u.user_name === formData.assigned_to).emp_LastName}`
+                                                        }
+                                                        : null
+                                                }
+
+                                                onChange={option => {
+                                                    handleChange({
+                                                        target: {
+                                                            name: 'assigned_to',
+                                                            value: option ? option.value : ''
+                                                        }
+                                                    })
+                                                }
+                                                }
+                                                options={allHDUser.map(u => ({
+                                                    label: `${u.emp_FirstName} ${u.emp_LastName}`,
+                                                    value: u.user_name,
+                                                }))}
+                                                isDisabled={!assignToState}
+                                                isClearable
+                                                styles={customSelectStyles}
+                                                classNamePrefix="react-select"
+                                            />
+                                        </div>
+                                    </InputGroup>
+                                </Col>
+                                {/* Collaborators */}
+                                {collaboratorState && (
+                                    <Col md={6} className="mb-2">
+                                        <Form.Label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span>Collaborators</span>
+                                            {
+                                                <span onClick={() => setCollaboratorState(false)} style={{ fontSize: '0.85rem', color: '#002E05', cursor: 'pointer' }}>
+                                                    <FeatherIcon icon="x" />
+                                                </span>
+                                            }
+                                        </Form.Label>
+                                        <InputGroup>
+                                            <InputGroup.Text>
+                                                <FeatherIcon icon="users" />
+                                            </InputGroup.Text>
+                                            {collaboratorState ? (
+                                                <div style={{ flex: 1 }}>
+                                                    <Select
+                                                        name="assigned_collaborators"
+                                                        value={
+                                                            (
+                                                                Array.isArray(formData.assigned_collaborators)
+                                                                    ? formData.assigned_collaborators
+                                                                    : typeof formData.assigned_collaborators === 'string'
+                                                                        ? formData.assigned_collaborators.split(',')
+                                                                        : []
+                                                            )
+                                                                .filter(user_name => user_name.trim() !== formData.assigned_to)
+                                                                .map((username) => {
+                                                                    const user = allHDUser.find((u) => u.user_name === username.trim());
+                                                                    return user
+                                                                        ? { value: user.user_name, label: `${user.emp_FirstName} ${user.emp_LastName}` }
+                                                                        : null;
+                                                                })
+                                                                .filter(Boolean)
+                                                        }
+                                                        onChange={selectedOptions =>
+                                                            handleChange({
+                                                                target: {
+                                                                    name: 'assigned_collaborators',
+                                                                    value: selectedOptions ? selectedOptions.map(option => option.value) : []
+                                                                }
+                                                            })
+                                                        }
+                                                        options={allHDUser
+                                                            .filter(user => user.user_name !== formData.assigned_to)
+                                                            .map(user => ({
+                                                                value: user.user_name,
+                                                                label: user ? `${user.emp_FirstName} ${user.emp_LastName}` : ''
+                                                            }))}
+                                                        isMulti
+                                                        isDisabled={!isEditable}
+                                                        isClearable
+                                                        placeholder="Select Collaborators"
+                                                        styles={customSelectStyles}
+                                                        classNamePrefix="react-select"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <Form.Control
+                                                    name="assigned_collaborators"
+                                                    value={
+                                                        (
+                                                            Array.isArray(formData.assigned_collaborators)
+                                                                ? formData.assigned_collaborators
+                                                                : typeof formData.assigned_collaborators === 'string' && formData.assigned_collaborators.trim() !== ''
+                                                                    ? formData.assigned_collaborators.split(',')
+                                                                    : []
+                                                        )
+                                                            .map((username) => {
+                                                                const user = allHDUser.find((u) => u.user_name === username.trim());
+                                                                return user ? `${user.emp_FirstName} ${user.emp_LastName}` : username;
+                                                            })
+                                                            .join(', ')
+
+                                                    }
+                                                    disabled
+                                                    placeholder='NONE'
+                                                />
+                                            )}
+                                        </InputGroup>
+                                    </Col>
+                                )}
+
+                            </Row>
+
+                            {/* TICKET INFO */}
+                            <h6 className="text-muted fw-semibold mt-4 mb-2">Request Info</h6>
+                            <Row>
+                                <Form.Group as={Col} md={6} className="mb-2">
+                                    <Form.Label>Ticket ID</Form.Label>
+                                    <Form.Control
+                                        name="ticket_id"
+                                        value={formData.ticket_id ?? ''}
+                                        disabled
+                                    />
+                                </Form.Group>
+                                <Form.Group as={Col} md={6} className="mb-2">
+                                    <Form.Label>Problem/Issue</Form.Label>
+                                    <Form.Control
+                                        name="ticket_subject"
+                                        value={formData.ticket_subject ?? ''}
+                                        onChange={handleChange}
+                                        disabled={!isEditable}
+                                    />
+                                </Form.Group>
+                                <Form.Group as={Col} md={6} className="mb-2" hidden>
+                                    <Form.Label>Ticket Type</Form.Label>
+                                    <Form.Select
+                                        name="ticket_type"
+                                        value={formData.ticket_type ?? ''}
+                                        onChange={handleChange}
+                                        required
+                                        disabled={!isEditable}
+                                    >
+                                        <option value='' hidden>-</option>
+                                        <option value="incident">Incident</option>
+                                        <option value="request">Request</option>
+                                        <option value="inquiry">Inquiry</option>
+                                    </Form.Select>
+                                </Form.Group>
+                                <Form.Group as={Col} md={6} className="mb-2">
+                                    <Form.Label>Status</Form.Label>
+                                    <Form.Select
+                                        name="ticket_status"
+                                        value={formData.ticket_status ?? ''}
+                                        onChange={handleChange}
+                                        required
+                                        disabled={!isEditable}
+                                    >
+                                        <option value="" hidden>-</option>
+                                        <option value="open" >Open</option>
+                                        <option value="assigned" hidden>Assigned</option>
+                                        <option value="in-progress">In Progress</option>
+                                        {/* <option value="escalate">Escalate</option> */}
+                                        <option value="resolved">Resolve</option>
+                                        <option value="closed" hidden>Close</option>
+                                        <option value="re-opened" hidden>Re Open</option>
+                                    </Form.Select>
+                                </Form.Group>
+                                <Form.Group as={Col} md={6} className="mb-2">
+                                    <Form.Label>Urgency</Form.Label>
+                                    <Form.Select
+                                        name="ticket_urgencyLevel"
+                                        value={formData.ticket_urgencyLevel ?? ''}
+                                        onChange={handleChange}
+                                        required
+                                        disabled={!isEditable}
+                                    >
+                                        <option value="" hidden>-</option>
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                        <option value="critical">Critical</option>
+                                    </Form.Select>
+                                </Form.Group>
+                                <Form.Group as={Col} md={6} className="mb-2">
+                                    <Form.Label>Category</Form.Label>
+                                    <Form.Select
+                                        name="ticket_category"
+                                        value={formData.ticket_category ?? ''}
+                                        onChange={handleChange}
+                                        required
+                                        disabled={!isEditable}
+                                    >
+                                        <option value="" hidden>-</option>
+                                        <option value="hardware">Hardware</option>
+                                        <option value="network">Network</option>
+                                        <option value="application">Application</option>
+                                        <option value="system">System</option>
+                                    </Form.Select>
+                                </Form.Group>
+                                <Form.Group as={Col} md={6} className="mb-2">
+                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                        <Form.Label className="mb-0">Sub Category</Form.Label>
+                                        {isEditable && formData.ticket_category && (
+                                            <Button
+                                                variant="link"
+                                                size="sm"
+                                                onClick={() => {
+                                                    if (!formData.ticket_category) {
+                                                        setError('Please select a category first');
+                                                        return;
+                                                    }
+                                                    setShowAddSubCategoryModal(true);
+                                                }}
+                                                style={{ textDecoration: 'none', padding: 0, fontSize: '0.85rem' }}
+                                            >
+                                                + Add Option
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <Form.Select
+                                        name="ticket_SubCategory"
+                                        value={formData.ticket_SubCategory ?? ''}
+                                        onChange={handleChange}
+                                        disabled={!isEditable || !formData.ticket_category}
+                                        required
+                                    >
+                                        <option value="">Select</option>
+                                        {getCurrentSubCategoryOptions().map((subcat, idx) => (
+                                            <option key={idx} value={subcat}>
+                                                {subcat}
+                                                {customSubCategories[formData.ticket_category]?.includes(subcat) && " (Custom)"}
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+
+                                </Form.Group>
+                                <Form.Group as={Col} md={6} className="mb-3">
+                                    <Form.Label>Tag ID</Form.Label>
+                                    <CreatableSelect
+                                        name="tag_id"
+                                        options={options}
+                                        styles={customSelectStyles}
+                                        value={
+                                            options.find(opt => opt.value === formData.tag_id) ||
+                                            (formData.tag_id ? { value: formData.tag_id, label: formData.tag_id } : null)
+                                        }
+                                        onChange={(selectedOption) => {
+                                            handleChange({
+                                                target: {
+                                                    name: 'tag_id',
+                                                    value: selectedOption ? selectedOption.value : ''
+                                                }
+                                            });
+
+
+                                        }}
+                                        onCreateOption={(inputValue) => {
+                                            setAssets(prev => [...prev, { tag_id: inputValue, pms_category: 'Custom', is_active: "1" }]);
+                                            handleChange({
+                                                target: {
+                                                    name: 'tag_id',
+                                                    value: inputValue
+                                                }
+                                            });
+                                        }}
+                                        isClearable
+                                        isDisabled={!isEditable}
+                                        placeholder="Type or select..."
+                                        formatOptionLabel={(option, { context }) => (
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    width: '100%',
+                                                }}
+                                            >
+                                                {/* Left: Tag ID */}
+                                                <span>{option.label}</span>
+
+                                                {/* Right: Category (only show for dropdown, not selected value) */}
+                                                {context === 'menu' && (
+                                                    <span
+                                                        style={{
+                                                            color: '#6c757d',
+                                                            fontSize: '0.9em',
+                                                            textAlign: 'right',
+                                                            flexShrink: 0,
+                                                            minWidth: '100px',
+                                                        }}
+                                                    >
+                                                        {option.category}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                    />
+                                </Form.Group>
+
+                                <Form.Group as={Col} md={12} className="mb-2">
+                                    <Form.Label>Attachments</Form.Label>
+                                    {renderAttachment()}
+                                </Form.Group>
+                            </Row>
+
+                            <h6 className="text-muted fw-semibold mt-4 mb-2">Description</h6>
+                            <Form.Group className="mb-3">
+                                <Form.Control
+                                    as="textarea"
+                                    rows={7}
+                                    name="Description"
+                                    value={formData.Description ?? ''}
+                                    disabled
+                                />
+                            </Form.Group>
+                        </Col>
+
+                        {/* HELP DESK NOTES */}
+                        <Col lg={4}>
+                            <h6 className="text-muted fw-semibold mb-2">Helpdesk Notes</h6>
+                            <Card className="shadow-sm border-0 h-900">
+                                <Card.Body>
+                                    <Form.Group className="mb-3">
+                                        <div
+                                            style={{
+                                                maxHeight: '600px',
+                                                overflowY: 'auto',
+                                                paddingRight: '5px',
+                                            }}
+                                        >
+                                            {allnotes && allnotes.length > 0 ? (
+                                                [...allnotes]
+                                                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                                                    .map((note, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="mb-3 p-3 rounded-3 shadow-sm bg-body-tertiary border border-light-subtle"
+                                                        >
+                                                            <div
+                                                                className="text-dark"
+                                                                style={{
+                                                                    fontSize: '0.95rem',
+                                                                    whiteSpace: 'pre-wrap',
+                                                                }}
+                                                            >
+                                                                {note.note}
+                                                            </div>
+                                                            {note.note_upload_path && renderNoteAttachments(note.note_upload_path)}
+                                                            <div className="d-flex justify-content-between align-items-center mt-2">
+                                                                <small className="text-muted fst-italic">
+                                                                    {notesofhduser[note.created_by] || note.created_by || 'Unknown'}
+                                                                </small>
+                                                                <small className="text-muted">
+                                                                    {note.created_at
+                                                                        ? new Date(
+                                                                            note.created_at
+                                                                        ).toLocaleString()
+                                                                        : ''}
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                            ) : (
+                                                <div className="text-muted fst-italic">
+                                                    No notes available.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Form.Group>
+
+                                    {hdnotesState && (
+                                        <>
+                                            <Form.Group>
+                                                <Form.Label className="fw-semibold text-muted" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: 'pointer' }}>
+                                                    Add a Note
+                                                    <Form.Text onClick={() => setAttachmentButtonState(!attachmentButtonState)} style={{ color: '#DEA22B', cursor: 'pointer' }}>+ Add document</Form.Text>
+                                                </Form.Label>
+
+                                                {attachmentButtonState && (
+                                                    <>
+                                                        <Form.Control
+                                                            type="file"
+                                                            multiple
+                                                            onChange={handleNoteFileChange}
+                                                            className="mt-1 mb-2"
+                                                        />
+                                                        {noteAttachments.length > 0 && (
+                                                            <div className="text-muted small mb-2">
+                                                                {noteAttachments.length} file(s) selected
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
+
+                                                {noteAlert && (
+                                                    <Form.Label className="fw-semibold ms-2 text-danger">
+                                                        Unable to save empty note
+                                                    </Form.Label>
+                                                )}
+
+                                                <Form.Control
+                                                    as="textarea"
+                                                    rows={5}
+                                                    name="notes"
+                                                    placeholder="Type your note here..."
+                                                    value={notes || ''}
+                                                    onChange={handleNoteChange}
+                                                    disabled={!hdnotesState}
+                                                    style={{ resize: 'none', fontSize: '0.95rem' }}
+                                                />
+                                            </Form.Group>
+                                        </>
+                                    )}
+
+                                    {/* USER FEEDBACK */}
+                                    <h6 className="text-muted fw-semibold mb-2 mt-2">User Feedback</h6>
+
+                                    <Form.Group className="mb-2">
+                                        <div
+                                            style={{
+                                                maxHeight: '300px',
+                                                overflowY: 'auto',
+                                                paddingRight: '5px',
+                                            }}
+                                        >
+                                            {allfeedback && allfeedback.length > 0 ? (
+                                                [...allfeedback]
+                                                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                                                    .map((feedback, index) => {
+                                                        const scoreMap = {
+                                                            1: { label: 'Very Dissatisfied', color: '#e74c3c' },
+                                                            2: { label: 'Dissatisfied', color: '#e67e22' },
+                                                            3: { label: 'Neutral', color: '#f1c40f' },
+                                                            4: { label: 'Satisfied', color: '#2ecc71' },
+                                                            5: { label: 'Very Satisfied', color: '#27ae60' },
+                                                        };
+
+                                                        const scoreInfo = scoreMap[feedback.score] || { label: 'No rating', color: '#7f8c8d' };
+
+                                                        return (
+                                                            <div
+                                                                key={index}
+                                                                className="mb-3 p-3 rounded-3 shadow-sm bg-body-tertiary border border-light-subtle"
+                                                            >
+                                                                <div
+                                                                    className="text-dark"
+                                                                    style={{
+                                                                        fontSize: '0.95rem',
+                                                                        whiteSpace: 'pre-wrap',
+                                                                    }}
+                                                                >
+                                                                    {feedback.review}
+                                                                </div>
+
+                                                                <div
+                                                                    style={{
+                                                                        fontSize: '0.70rem',
+                                                                        color: scoreInfo.color,
+                                                                        fontWeight: '600',
+                                                                    }}
+                                                                >
+                                                                    {scoreInfo.label}
+                                                                </div>
+
+                                                                <div className="d-flex justify-content-between align-items-center mt-2">
+                                                                    <small className="text-muted fst-italic">
+                                                                        {feedbackuser[feedback.created_by] || feedback.created_by || 'Unknown'}
+                                                                    </small>
+                                                                    <small className="text-muted">
+                                                                        {feedback.created_at
+                                                                            ? new Date(feedback.created_at).toLocaleString()
+                                                                            : ''}
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
+                                            ) : (
+                                                <div className="text-muted fst-italic">No notes available.</div>
+                                            )}
+                                        </div>
+                                    </Form.Group>
+
+
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    </Row>
+
+                    {/*HD Resolution Ticket */}
+                    <Modal show={showCloseResolutionModal} onHide={() => setShowCloseResolutionModal(false)} centered>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Resolution: (Required)</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <Form.Group controlId="userResolution">
+                                <Form.Label>How were you able to resolve?</Form.Label>
+                                <Form.Control
+                                    as="textarea"
+                                    rows={3}
+                                    value={resolution}
+                                    onChange={(e) => setResolution(e.target.value)}
+                                    placeholder="Enter your troubleshooting steps here"
+                                />
+                            </Form.Group>
+                            <Form.Group controlId="userResolution">
+                                <Form.Label>Turn around time(TAT)</Form.Label>
+                                <Form.Label>Category</Form.Label>
+                                <Form.Select
+                                    name="ticket_tat"
+                                    value={turnaroundtime ?? ''}
+                                    onChange={(e) => setTurnAroundTime(e.target.value)}
+                                    required
+                                    disabled={!resolution}
+                                >
+                                    <option value="" hidden>-</option>
+                                    <option value="30m">30 minutes</option>
+                                    <option value="1h">1 hour</option>
+                                    <option value="2h">2 hour</option>
+                                    <option value="1d">24 hour (1 day)</option>
+                                    <option value="2d">48 hour (2 days)</option>
+                                    <option value="3d">72 hour (3 days)</option>
+                                </Form.Select>
+                            </Form.Group>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={() => setShowCloseResolutionModal(false)}>
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={HandleResolution}
+                                disabled={resolution.trim() === ''}
+                            >
+                                Confirm
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+
+                    {/* Lock Modal */}
+                    <Modal show={lockModal} onHide={() => setLockModal(false)} centered>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Attention! </Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <Form.Group controlId="userResolution">
+                                <Form.Label>{lockError}</Form.Label>
+                            </Form.Group>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={() => setLockModal(false)}>
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={() => setLockModal(false)}
+                            >
+                                Ok
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+
+                    {/* Arhcive MOdal */}
+                    <Modal show={archiveState} onHide={() => setArchiveState(false)} centered>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Archive</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <Form.Group controlId="userResolution">
+                                <Form.Label>Are you sure you want to archive this ticket?</Form.Label>
+                            </Form.Group>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={() => setArchiveState(false)}>
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={() => Archive()}
+                            >
+                                Ok
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+
+                    {/* Unarchive Mpodal */}
+                    <Modal show={unarchiveState} onHide={() => setUnArchiveState(false)} centered>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Unarchive</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <Form.Group controlId="userResolution">
+                                <Form.Label>Are you sure you want to unarchive this ticket?</Form.Label>
+                            </Form.Group>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={() => setUnArchiveState(false)}>
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={() => UnArchive()}
+                            >
+                                Ok
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+
+                    {/* LOgs Modal */}
+                    <Modal
+                        show={showModal}
+                        onHide={() => setShowModal(false)}
+                        size="lg" // smaller than xl
+                        centered
+                    >
+                        <Modal.Header closeButton>
+                            <Modal.Title>{modalTitle}</Modal.Title>
+                        </Modal.Header>
+
+                        <Modal.Body
+                            style={{
+                                maxHeight: "50vh", // responsive height limit
+                                overflowY: "auto", // scroll if content is long
+                                padding: "20px",
+                            }}
+                        >
+                            {modalContent}
+                        </Modal.Body>
+
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={() => setShowModal(false)}>
+                                Close
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+
+                    {/* TAT Modal */}
+                    <Modal
+                        show={showModalTAT}
+                        onHide={() => setShowModalTAT(false)}
+                        size="lg" // smaller than xl
+                        centered
+                    >
+                        <Modal.Header closeButton>
+                            <Modal.Title>{modalTitleTAT}</Modal.Title>
+                        </Modal.Header>
+
+                        <Modal.Body
+                            style={{
+                                maxHeight: "50vh", // responsive height limit
+                                overflowY: "auto", // scroll if content is long
+                                padding: "20px",
+                            }}
+                        >
+                            {modalContentTAT}
+                        </Modal.Body>
+
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={() => setShowModalTAT(false)}>
+                                Close
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+                </Container >
+            </AnimatedContent>
+
+            {/* Loading Componnet */}
+            {loading && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        width: "100vw",
+                        height: "100vh",
+                        backgroundColor: "rgba(0,0,0,0.5)", // black transparent bg
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        zIndex: 9999,
+                    }}
+                >
+                    <Spinner animation="border" variant="light" />
+                </div>
+            )
+            }
+
+        </Container >
+    );
+}
