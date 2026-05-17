@@ -114,7 +114,7 @@ export default function SignIn1() {
 
         // Redirect after short delay to show success message
         setTimeout(() => {
-          window.location.replace(`/ticketsystem/dashboard`);
+          window.location.replace(`/dashboard`);
         }, 1000);
       } else {
         // No user found with these credentials

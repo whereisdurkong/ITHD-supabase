@@ -348,7 +348,7 @@ export default function ArchiveReviewComputer() {
 
 
             setSuccess('User updated successfully!');
-            window.location.replace('/ticketsystem/assets');
+            window.location.replace('/assets');
         } catch (err) {
             console.log(err);
             setLoading(false);
@@ -406,7 +406,7 @@ export default function ArchiveReviewComputer() {
             setSuccess('Computer deleted successfully!');
             setLoading(false);
             setShowDeleteModal(false);
-            window.location.replace('/ticketsystem/assets');
+            window.location.replace('/assets');
         } catch (err) {
             console.log(err);
             setLoading(false);
@@ -460,7 +460,7 @@ export default function ArchiveReviewComputer() {
             })
 
             setSuccess('Successfully Archived asset')
-            window.location.replace('/ticketsystem/assets')
+            window.location.replace('/assets')
         } catch (err) {
             console.log(err);
             setLoading(false);

@@ -337,7 +337,7 @@ export default function ReviewLaptop() {
             })
 
             setSuccess('User updated successfully!');
-            window.location.replace('/ticketsystem/assets');
+            window.location.replace('/assets');
         } catch (err) {
             console.log(err);
             setLoading(false);
@@ -372,7 +372,7 @@ export default function ReviewLaptop() {
             setSuccess('Computer deleted successfully!');
             setLoading(false);
             setShowDeleteModal(false);
-            window.location.replace('/ticketsystem/assets');
+            window.location.replace('/assets');
         } catch (err) {
             console.log(err);
             setLoading(false);
@@ -420,7 +420,7 @@ export default function ReviewLaptop() {
                 created_at: new Date()
             }))
             setSuccess('Successfully Archived asset')
-            window.location.replace('/ticketsystem/assets')
+            window.location.replace('/assets')
         } catch (err) {
             console.log(err);
             setLoading(false);

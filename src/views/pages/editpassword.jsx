@@ -74,7 +74,7 @@ export default function EditPassword() {
             }).eq('user_id', empInfo.user_id)
             setLoading(false)
             setSuccessful('Successfullly changed your password')
-            window.location.replace('/ticketsystem/profile')
+            window.location.replace('/profile')
         } catch (err) {
             console.log(err);
             setError('Unable to cahnge the password!')

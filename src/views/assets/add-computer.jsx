@@ -284,7 +284,7 @@ export default function AddComputer() {
             setPMSDate('');
             setDescription('');
 
-            window.location.replace('/ticketsystem/assets')
+            window.location.replace('/assets')
         } catch (err) {
             console.log(err);
             setError('An error occurred while submitting the form. Please try again.');

@@ -374,7 +374,7 @@ export default function ReviewComputer() {
 
             // console.log(updateDesktop)
             setSuccess('User updated successfully!');
-            window.location.replace('/ticketsystem/assets');
+            window.location.replace('/assets');
         } catch (err) {
             console.log(err);
             setLoading(false);
@@ -408,7 +408,7 @@ export default function ReviewComputer() {
             setSuccess('Computer deleted successfully!');
             setLoading(false);
             setShowDeleteModal(false);
-            window.location.replace('/ticketsystem/assets');
+            window.location.replace('/assets');
         } catch (err) {
             console.log(err);
             setLoading(false);
@@ -458,7 +458,7 @@ export default function ReviewComputer() {
             })
 
             setSuccess('Successfully Archived asset')
-            window.location.replace('/ticketsystem/assets')
+            window.location.replace('/assets')
         } catch (err) {
             console.log(err);
             setLoading(false);

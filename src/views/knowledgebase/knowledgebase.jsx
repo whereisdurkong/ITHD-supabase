@@ -212,9 +212,9 @@ export default function Knowledgebase() {
                             }}
                         >
                             <span>Common troubleshooting topics:</span>
-                            <a href="/ticketsystem/network" style={{ color: '#fff', textDecoration: 'underline' }}>Slow internet</a>
-                            <a href="/ticketsystem/hardware" style={{ color: '#fff', textDecoration: 'underline' }}>Keyboard not working</a>
-                            <a href="/ticketsystem/application" style={{ color: '#fff', textDecoration: 'underline' }}>Outlook Unable to log in</a>
+                            <a href="/network" style={{ color: '#fff', textDecoration: 'underline' }}>Slow internet</a>
+                            <a href="/hardware" style={{ color: '#fff', textDecoration: 'underline' }}>Keyboard not working</a>
+                            <a href="/application" style={{ color: '#fff', textDecoration: 'underline' }}>Outlook Unable to log in</a>
                         </div>
                     </Container>
                 </AnimatedContent>

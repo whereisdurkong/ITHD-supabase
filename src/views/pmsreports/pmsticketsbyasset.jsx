@@ -948,7 +948,7 @@ export default function PmsTicketsByAsset({ filterType = 'all', showChart = true
                                                                             }}
                                                                             onClick={() => {
                                                                                 if (asset.pms_category && asset.pms_id) {
-                                                                                    window.open(`/ticketsystem/assets-${asset.pms_category}?id=${asset.pms_id}`)
+                                                                                    window.open(`/assets-${asset.pms_category}?id=${asset.pms_id}`)
                                                                                 }
                                                                             }}
                                                                         >

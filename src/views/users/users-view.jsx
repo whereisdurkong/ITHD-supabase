@@ -184,7 +184,7 @@ export default function UsersView() {
                 created_by: current_user.user_name
             })
             setSuccessful('User deleted successfully!');
-            window.location.replace('/ticketsystem/users');
+            window.location.replace('/users');
         } catch (err) {
             console.error("Error deleting user:", err);
         }
@@ -224,7 +224,7 @@ export default function UsersView() {
             })
             setShowChangePassword(false)
             setPSuccessful('Successfullly changed your password')
-            window.location.replace(`/ticketsystem/users-view?id=${user_id}`)
+            window.location.replace(`/users-view?id=${user_id}`)
         } catch (err) {
             console.log(err);
             setShowChangePassword(false)

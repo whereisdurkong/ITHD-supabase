@@ -161,14 +161,14 @@ export default function NavRight() {
         .update({ is_notifiedhd: false })
         .eq('ticket_id', context);
 
-      if (!error) window.location.replace(`/ticketsystem/view-hd-ticket?${params.toString()}`);
+      if (!error) window.location.replace(`/view-hd-ticket?${params.toString()}`);
     } else if (userData.emp_tier === 'user') {
       const { error } = await supabase
         .from('ticket_master')
         .update({ is_notified: false })
         .eq('ticket_id', context);
 
-      if (!error) window.location.replace(`/ticketsystem/view-ticket?${params.toString()}`);
+      if (!error) window.location.replace(`/view-ticket?${params.toString()}`);
     }
   };
 
@@ -181,14 +181,14 @@ export default function NavRight() {
         .update({ is_notifiedhd: false })
         .eq('pmsticket_id', context);
 
-      if (!error) window.location.replace(`/ticketsystem/view-pms-hd-ticket?${params.toString()}`);
+      if (!error) window.location.replace(`/view-pms-hd-ticket?${params.toString()}`);
     } else if (userData.emp_tier === 'user') {
       const { error } = await supabase
         .from('pmsticket_master')
         .update({ is_notified: false })
         .eq('pmsticket_id', context);
 
-      if (!error) window.location.replace(`/ticketsystem/view-pms-user-ticket?${params.toString()}`);
+      if (!error) window.location.replace(`/view-pms-user-ticket?${params.toString()}`);
     }
   };
 

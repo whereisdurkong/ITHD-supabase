@@ -1168,7 +1168,7 @@ const PMSbyDept = ({ filterType, location, onDataReady, showChart = true, select
                                                                 {paginatedTickets.map((ticket, index) => (
                                                                     <tr key={index}
                                                                         style={{ cursor: "pointer" }}
-                                                                        onClick={() => window.open(`/ticketsystem/view-pms-hd-ticket?id=${ticket.pmsticket_id}`)}>
+                                                                        onClick={() => window.open(`/view-pms-hd-ticket?id=${ticket.pmsticket_id}`)}>
                                                                         <td >{ticket.tag_id}</td>
                                                                         <td>{getAssetCategory(ticket.tag_id)}</td>
                                                                         <td>{ticket.pmsticket_id}</td>
@@ -1261,7 +1261,7 @@ const PMSbyDept = ({ filterType, location, onDataReady, showChart = true, select
                                                         {paginatedTickets.map((ticket, index) => (
                                                             <tr key={index}
                                                                 style={{ cursor: "pointer" }}
-                                                                onClick={() => window.open(`/ticketsystem/view-pms-hd-ticket?id=${ticket.pmsticket_id}`)}>
+                                                                onClick={() => window.open(`/view-pms-hd-ticket?id=${ticket.pmsticket_id}`)}>
                                                                 <td>{ticket.tag_id}</td>
                                                                 <td>{getAssetCategory(ticket.tag_id)}</td>
                                                                 <td>{ticket.pmsticket_id}</td>
