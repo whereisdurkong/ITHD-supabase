@@ -10,7 +10,8 @@ import * as actionType from 'store/actions';
 
 // assets
 import logo from 'assets/images/logo.svg';
-import lmdblack from 'assets/images/lmdlogo/lmd-black.png';
+// import lmdblack from 'assets/images/lmdlogo/lmd-black.png';
+import lmdblack from '/public/images/lmdlogo/lmd-black.png'
 import newLogo from 'assets/images/new-logo.png';
 
 // -----------------------|| MOBILE HEADER ||-----------------------//
