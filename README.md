@@ -61,35 +61,6 @@ Whether it's a password reset or a company-wide system outage, this system has i
 
 ---
 
-## 🗂️ Project Structure
-
-```
-it-helpdesk/
-├── 📁 app/
-│   ├── 📁 Http/
-│   │   ├── Controllers/
-│   │   └── Middleware/
-│   ├── 📁 Models/
-│   └── 📁 Notifications/
-├── 📁 database/
-│   ├── migrations/
-│   └── seeders/
-├── 📁 resources/
-│   ├── views/
-│   │   ├── tickets/
-│   │   ├── knowledge-base/
-│   │   ├── announcements/
-│   │   └── pms/
-│   └── js/
-├── 📁 routes/
-│   └── web.php
-├── 📁 public/
-├── 📄 .env.example
-└── 📄 README.md
-```
-
----
-
 ## 🚀 Getting Started
 
 ### Prerequisites
