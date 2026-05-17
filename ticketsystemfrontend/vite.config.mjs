@@ -28,14 +28,14 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: [
-        {
-          find: /^~(.+)/,
-          replacement: path.join(process.cwd(), 'node_modules/$1')
-        },
-        {
-          find: /^src(.+)/,
-          replacement: path.join(process.cwd(), 'src/$1')
-        }
+        // {
+        //   find: /^~(.+)/,
+        //   replacement: path.join(process.cwd(), 'node_modules/$1')
+        // },
+        // {
+        //   find: /^src(.+)/,
+        //   replacement: path.join(process.cwd(), 'src/$1')
+        // }
 
       ]
     },
@@ -73,7 +73,7 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
-    base: '/ticketsystem',
+    base: API_URL,
     plugins: [react(), tsconfigPaths()]
   };
 });
