@@ -2,6 +2,10 @@
   "name": "dashboard-kit-react",
   "version": "3.0.0",
   "private": true,
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
     "@tanem/react-nprogress": "^5.0.53",
