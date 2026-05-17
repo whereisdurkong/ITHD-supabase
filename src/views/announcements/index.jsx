@@ -313,7 +313,7 @@ export default function Announcements() {
                                     <div className="d-flex align-items-center justify-content-between mb-4">
                                         <div className="d-flex align-items-center">
                                             <img
-                                                src="src/assets/images/user/avatar-2.jpg"
+                                                src="public/images/user/avatar-2.jpg"
                                                 alt="Profile"
                                                 style={{
                                                     width: '40px',
