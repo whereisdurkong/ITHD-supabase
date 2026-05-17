@@ -35,25 +35,25 @@ export default function Knowledgebase() {
         {
             title: 'Hardware',
             desc: 'Learn how to troubleshoot and maintain your computer’s physical components and devices.',
-            src: 'src/assets/images/hardware.png',
+            src: '/images/hardware.png',
             link: '/hardware',
         },
         {
             title: 'Network',
             desc: 'Find guides to fix connectivity issues and understand how your network keeps you online.',
-            src: 'src/assets/images/network.png',
+            src: '/images/network.png',
             link: '/network',
         },
         {
             title: 'Application',
             desc: 'Explore tips and solutions for common application errors and application usage.',
-            src: 'src/assets/images/software.png',
+            src: '/images/software.png',
             link: '/application',
         },
         {
             title: 'System',
             desc: 'Access guides and troubleshooting tips for our in-house applications and tools.',
-            src: 'src/assets/images/system.png',
+            src: '/images/system.png',
             link: '/system',
         },
     ];

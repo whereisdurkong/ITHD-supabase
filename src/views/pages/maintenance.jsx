@@ -19,7 +19,7 @@ export default function Maintenance() {
                 }}>
                 <div
                 >
-                    <img src={'SRC/assets/images/maintenance.png'} alt="userimage" className="user-avatar" style={{ width: '700px', height: '500px ', paddingBottom: '10px' }} />
+                    <img src={'/images/maintenance.png'} alt="userimage" className="user-avatar" style={{ width: '700px', height: '500px ', paddingBottom: '10px' }} />
                     <h3><b>THIS PAGE IS UNDER MAINTENANCE.</b></h3>
                 </div>
 

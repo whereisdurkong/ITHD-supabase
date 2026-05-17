@@ -9,7 +9,7 @@ import navitemcollapse from 'menu-items-collapse';
 import * as actionType from 'store/actions';
 
 // assets
-import avatar2 from 'assets/images/user/avatar-2.jpg';
+import avatar2 from '/public/images/user/avatar-2.jpg';
 
 // -----------------------|| NAVIGATION ||-----------------------//
 

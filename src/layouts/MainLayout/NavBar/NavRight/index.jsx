@@ -7,7 +7,7 @@ import { ListGroup, Dropdown, Form, Badge } from 'react-bootstrap';
 import FeatherIcon from 'feather-icons-react';
 
 // assets
-import avatar2 from 'assets/images/user/avatar-2.jpg';
+import avatar2 from '/public/images/user/avatar-2.jpg';
 
 import { useNavigate } from 'react-router';
 import { useEffect, useState } from 'react';

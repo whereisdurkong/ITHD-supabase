@@ -356,7 +356,7 @@ export default function CreateTicketUser() {
             backgroundColor: "#000"
         }}>
             <video
-                src="src\assets\images\walkthrough.mp4"
+                src="\images\walkthrough.mp4"
                 autoPlay
                 muted
                 loop

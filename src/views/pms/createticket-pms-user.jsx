@@ -309,7 +309,7 @@ export default function CreatePMSUser() {
             backgroundColor: "#000"
         }}>
             <video
-                src="src\assets\images\pmswalkthrough.mp4"
+                src="\images\pmswalkthrough.mp4"
                 autoPlay
                 muted
                 loop
