@@ -530,7 +530,7 @@ export default function ViewTicket() {
                     review: userfeedback,
                     user_id: hdUser.user_id,
                     created_by: empInfo.user_name,
-                    ticket_id: formData.ticket_id,
+
                     score: value,
                     created_at: new Date()
                 })

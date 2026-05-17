@@ -316,28 +316,28 @@ export default function ReviewComputer() {
             return;
         }
 
-        const updateDesktop = {
-            // pms_id,
-            tag_id: tag_id,
-            department: department,
-            assign_to: assign_to,
-            pass_word: password,
-            ip_address: ip_address,
-            processor: processor,
-            memory: memory,
-            storage: storage,
-            gpu: gpu,
-            monitor_model: monitorBrandModel,
-            monitor_serial: monitorSerial,
-            pms_date: pms_date,
-            date_purchased: date_purchased,
-            windows_license: windows_license,
-            microsoft_license: microsoft_license,
-            description, description,
-            assigned_location: location,
-            updated_by: empInfo.user_name,
-            // changes_made: changeSummary
-        };
+        // const updateDesktop = {
+        //     // pms_id,
+        //     tag_id: tag_id,
+        //     department: department,
+        //     assign_to: assign_to,
+        //     pass_word: password,
+        //     ip_address: ip_address,
+        //     processor: processor,
+        //     memory: memory,
+        //     storage: storage,
+        //     gpu: gpu,
+        //     monitor_model: monitorBrandModel,
+        //     monitor_serial: monitorSerial,
+        //     pms_date: pms_date,
+        //     date_purchased: date_purchased,
+        //     windows_license: windows_license,
+        //     microsoft_license: microsoft_license,
+        //     description, description,
+        //     assigned_location: location,
+        //     updated_by: empInfo.user_name,
+        //     // changes_made: changeSummary
+        // };
 
         try {
             // await axios.post(`${config.baseApi}/pms/update-computer`, updateDesktop);
@@ -372,7 +372,7 @@ export default function ReviewComputer() {
             });
 
 
-            console.log(updateDesktop)
+            // console.log(updateDesktop)
             setSuccess('User updated successfully!');
             window.location.replace('/ticketsystem/assets');
         } catch (err) {
