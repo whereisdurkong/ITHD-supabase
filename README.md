@@ -61,80 +61,6 @@ Whether it's a password reset or a company-wide system outage, this system has i
 
 ---
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-Before you begin, make sure you have the following installed:
-
-- **PHP** >= 8.1
-- **Composer**
-- **Node.js** >= 16 & **NPM**
-- **MySQL** or **MariaDB**
-- A configured **mail driver** (SMTP, Mailgun, etc.)
-
-### Installation
-
-**1. Clone the repository**
-```bash
-git clone https://github.com/your-username/it-helpdesk.git
-cd it-helpdesk
-```
-
-**2. Install dependencies**
-```bash
-composer install
-npm install && npm run build
-```
-
-**3. Set up environment**
-```bash
-cp .env.example .env
-php artisan key:generate
-```
-
-**4. Configure your `.env` file**
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=helpdesk_db
-DB_USERNAME=root
-DB_PASSWORD=your_password
-
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.mailtrap.io
-MAIL_PORT=2525
-MAIL_USERNAME=your_username
-MAIL_PASSWORD=your_password
-MAIL_FROM_ADDRESS=helpdesk@yourcompany.com
-MAIL_FROM_NAME="IT Helpdesk"
-```
-
-**5. Run migrations and seed data**
-```bash
-php artisan migrate --seed
-```
-
-**6. Start the development server**
-```bash
-php artisan serve
-```
-
-Visit `http://localhost:8000` — you're live! 🎉
-
----
-
-## 🖼️ Screenshots
-
-> *(Add screenshots of your dashboard, ticket view, knowledge base, and announcement board here)*
-
-| Dashboard | Ticket View | Knowledge Base |
-|-----------|-------------|----------------|
-| ![Dashboard](screenshots/dashboard.png) | ![Tickets](screenshots/tickets.png) | ![KB](screenshots/kb.png) |
-
----
-
 ## 📢 Announcement System — How It Works
 
 The **Announcement Board** is designed for major incidents and company-wide notices. When a critical issue is detected:
@@ -181,12 +107,13 @@ User submits ticket
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | Laravel (PHP) |
-| Frontend | Blade / Livewire / Alpine.js |
-| Database | MySQL |
-| Email | Laravel Notifications + SMTP |
+| Frontend | React.js |
+| Dev Database | Supabase (PostgreSQL) |
+| Production Database | SQL Server 2019 / 2022 |
+| Email Notifications | SMTP / Email Service API |
+| Auth | Supabase Auth |
+| Build Tool | Vite |
 | Styling | Tailwind CSS |
-| Auth | Laravel Breeze / Jetstream |
 
 ---
 
